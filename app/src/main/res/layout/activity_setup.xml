@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SetupActivity">
+
+    <TextView
+        android:id="@+id/textView_setup5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/txt_Setup"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintBottom_toTopOf="@+id/button8"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView_setup5"
+        app:layout_constraintVertical_bias="0.5">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="1dp"
+            android:orientation="vertical"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:padding="4dp"
+            android:background="@drawable/customborder">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:gravity="center_horizontal|center_vertical"
+                android:text="@string/txt_Setup_controller" />
+
+            <TableLayout
+                android:id="@+id/Table_setup_controller"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:background="@drawable/customborder">
+
+            </TableLayout>
+
+
+            <Button
+                android:id="@+id/SA_AddController"
+                android:layout_width="38dp"
+                android:layout_height="30dp"
+                android:layout_gravity="right"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="4dp"
+                android:foregroundGravity="bottom"
+                android:onClick="SA_AddController"
+                android:padding="4dp"
+                android:paddingStart="4dp"
+                android:paddingLeft="4dp"
+                android:text="+"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal|center_vertical"
+                android:text="Общие параметры контроллеров" />
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="4dp"
+                android:background="@drawable/customborder">
+
+                <!--
+                                <TableRow
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:gravity="center_vertical"
+                                        android:lines="2"
+                                        android:text="@string/txt_Setup_controllerIP" />
+
+                 - - inputType="number" и android:digits="01234567890." ограничиваем ввод цифрами и точками для ввода IP адреса - -
+                                    <EditText
+                                        android:id="@+id/editSetupControllerIP"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:autofillHints=""
+                                        android:ems="10"
+                                        android:gravity="center_vertical"
+                                        android:inputType="number"
+                                        android:digits="01234567890."
+                                        android:minHeight="48dp"
+                                        tools:ignore="SpeakableTextPresentCheck" />
+                                </TableRow>
+                -->
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:lines="1"
+                    android:text =  "@string/txt_Setup_controllerPort" />
+
+                <!-- inputType="number" и android:digits="01234567890" ограничиваем ввод цифрами  -->
+                <EditText
+                    android:id="@+id/editSetupControllerPort"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:autofillHints=""
+                    android:ems="10"
+                    android:gravity="center_vertical"
+                    android:inputType="number"
+                    android:digits="01234567890"
+                    android:minHeight="48dp"
+                    tools:ignore="SpeakableTextPresentCheck" />
+            </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:lines="1"
+                        android:text= "@string/txt_Setup_controllerTimeout" />
+
+                    <!-- inputType="number" и android:digits="01234567890" ограничиваем ввод цифрами -->
+                    <EditText
+                        android:id="@+id/editSetupControllerTimeout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:autofillHints=""
+                        android:ems="10"
+                        android:gravity="center_vertical"
+                        android:inputType="number"
+                        android:digits="01234567890"
+                        android:minHeight="48dp"
+                        tools:ignore="SpeakableTextPresentCheck" />
+                </TableRow>
+<!--
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:lines="1"
+                        android:text= "@string/txt_Setup_UseDebugLog" />
+
+                    <CheckBox
+                        android:id="@+id/checkBox_Setup_useDebug"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/txt_Setup_UseDebugLogOn" />
+                </TableRow>
+-->
+            </TableLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal|center_vertical"
+                android:text="@string/txt_Setup_server" />
+
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="4dp"
+                android:background="@drawable/customborder">
+
+
+            <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:lines="2"
+                        android:minHeight="48dp"
+                        android:text="@string/txt_Setup_serverIP" />
+
+                    <EditText
+                        android:id="@+id/editSetupServerIP"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:autofillHints=""
+                        android:ems="10"
+                        android:gravity="center_vertical"
+                        android:inputType="number"
+                        android:digits="01234567890."
+                        android:minHeight="48dp"
+                        tools:ignore="SpeakableTextPresentCheck" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:lines="1"
+                        android:text =  "@string/txt_Setup_serverPort" />
+
+                    <!-- inputType="number" и android:digits="01234567890" ограничиваем ввод цифрами  -->
+                    <EditText
+                        android:id="@+id/editSetupServerPort"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:autofillHints=""
+                        android:ems="10"
+                        android:gravity="center_vertical"
+                        android:inputType="number"
+                        android:digits="01234567890"
+                        android:minHeight="48dp"
+                        tools:ignore="SpeakableTextPresentCheck" />
+                </TableRow>
+<!--
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:lines="1"
+                        android:text = "@string/txt_Setup_serverUserName" />
+
+                    <EditText
+                        android:id="@+id/editSetupServerUserName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:autofillHints=""
+                        android:ems="10"
+                        android:gravity="center_vertical"
+                        android:inputType="number"
+                        android:digits="01234567890"
+                        android:minHeight="48dp"
+                        tools:ignore="SpeakableTextPresentCheck" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:lines="1"
+                        android:text = "@string/txt_Setup_serverPassword" />
+
+                    <EditText
+                        android:id="@+id/editSetupServerPassword"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:autofillHints=""
+                        android:ems="10"
+                        android:gravity="center_vertical"
+                        android:inputType="number"
+                        android:digits="01234567890"
+                        android:minHeight="48dp"
+                        tools:ignore="SpeakableTextPresentCheck" />
+                </TableRow>
+-->
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:lines="1"
+                        android:text= "@string/txt_Setup_serverTimeout" />
+
+                    <!-- inputType="number" и android:digits="01234567890" ограничиваем ввод цифрами -->
+                    <EditText
+                        android:id="@+id/editSetupServerTimeout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:autofillHints=""
+                        android:ems="10"
+                        android:gravity="center_vertical"
+                        android:inputType="number"
+                        android:digits="01234567890"
+                        android:minHeight="48dp"
+                        tools:ignore="SpeakableTextPresentCheck" />
+                </TableRow>
+
+            </TableLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <Button
+        android:id="@+id/button7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="68dp"
+        android:layout_marginBottom="24dp"
+        android:onClick="BS_SetupSaveAndReturnToMainActivity"
+        android:text="@string/txt_save"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/button8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="44dp"
+        android:layout_marginBottom="24dp"
+        android:onClick="BS_SetupReturnToMainActivity"
+        android:text="@string/txt_ret"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

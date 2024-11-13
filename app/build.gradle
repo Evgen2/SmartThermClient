@@ -1,0 +1,76 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.smartthermclient'
+    compileSdk 34
+
+    defaultConfig {
+// Get Build time from https://stackoverflow.com/questions/71428412/how-can-i-display-the-build-time-in-my-android-application
+// ...Another alternative is to replace
+// used with buildConfig
+        def buildTime = new Date()
+        buildConfigField "String", "BUILD_TIME", "\"${buildTime.format('yyyy-MM-dd HH:mm:ss')}\""
+//***************
+        resValue "string", "build_time", "${buildTime.format('yyyy-MM-dd HH:mm:ss')}"
+        applicationId "com.smartthermclient"
+        minSdk 24
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        // add the code from below line
+        applicationVariants.all{
+                // this method is use to rename your all apk weather
+                // it may be signed or unsigned(debug apk)
+            variant ->
+                variant.outputs.each{
+                        // on below line we are setting
+                        // a name to our apk as GFG.apk
+                    output->
+                        // on below line we are adding version name to
+                        // our .apk file along with the app name
+                        def name = "SmartThermClient(${variant.versionName}).apk"
+                        // on below line we are setting the
+                        // outputFile Name to our apk file
+                        output.outputFileName = name
+                }
+        }
+    }
+    buildFeatures {
+        buildConfig = true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
+    implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+    implementation 'androidx.activity:activity:1.9.1'
+    implementation 'androidx.preference:preference:1.2.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}

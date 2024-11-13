@@ -1,0 +1,59 @@
+<resources>
+    <string name="app_name">SmartTherm Client</string>
+    <string name="app_name_subtitle">Приложение для Android контроллера SmartTherm</string>
+    <string name="button_Boiler">SmartTherm</string>
+    <string name="button_Server">SmartServer</string>
+    <string name="button_Settings">Настройки</string>
+    <string name="txt_Setup">Настройки:</string>
+    <string name="txt_Setup_controller">Контроллер</string>
+    <string name="txt_Setup_controllerIP">IP адрес в\n локальной сети</string>
+    <string name="txt_Setup_controllerPort">Порт</string>
+    <string name="txt_Setup_controllerTimeout">Таймаут, мс</string>
+    <string name="txt_Setup_UseDebugLog">Отладочный лог</string>
+    <string name="txt_Setup_UseDebugLogOn">Включить</string>
+    <string name="txt_Setup_DebugLogFileName">Имя файла с отладочным логом</string>
+    <string name="txt_Setup_server">Сервер</string>
+    <string name="txt_Setup_serverIP">адрес сервера\n(доменное имя или IP)</string>
+    <string name="txt_Setup_serverPort">Порт</string>
+    <string name="txt_Setup_serverUserName">Имя пользователя</string>
+    <string name="txt_Setup_serverPassword">Пароль</string>
+    <string name="txt_Setup_serverTimeout">Таймаут, мс</string>
+    <string name="txt_del">Удалить</string>
+    <string name="txt_ret">Вернуться</string>
+    <string name="txt_save">Сохранить</string>
+    <string name="txt_set">Задать</string>
+    <string name="txt_InfoHead">SmartTherm</string>
+    <string name="txt_InfoConnect">Состояние связи:</string>
+    <string name="txt_InfoSts">Состояние :</string>
+    <string name="txt_InfoBoilerT">Выходная температура\nотопления,ºC:</string>
+    <string name="txt_InfoBoilerReT">Температура обратки:</string>
+    <string name="txt_InfoBoilerSetT_r">Заданная температура\nотопления:</string>
+    <string name="txt_InfoBoilerSetT">Задать температуру\nотопления,ºC:</string>
+    <string name="txt_InfoInDoorT">Температура помещения,ºC:</string>
+    <string name="txt_InfoOutDoorT">Температура улицы,ºC:</string>
+    <string name="txt_InfoRoomSetTag">Задать температуру\nпомещения,ºC:</string>
+    <string name="txt_InfoBoilerDhw_T">Температура горячей воды:</string>
+    <string name="txt_InfoBoilerFlameModulation">Модуляция пламени:</string>
+    <string name="txt_InfoBoilerPressure">Давление:</string>
+    <string name="txt_InfoFirmware">Прошивка</string>
+
+    <string name="txt_BoilerSettings_head">Настройки котла:</string>
+    <string name="txt_ServerHead">SmartServer</string>
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+</resources>

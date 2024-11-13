@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical"
+android:background="#FFFFFF">
+
+<!-- Manually imitate an entire AlertDialog layout -->
+<!-- See dialog specs on: https://material.google.com/components/dialogs.html#dialogs-specs -->
+
+<!-- Title and content -->
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingTop="24dp"
+    android:paddingRight="24dp"
+    >
+
+    <TextView
+        android:id="@+id/set_temp_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:text="dialog_title"
+        />
+
+    <TextView
+        android:id="@+id/fr_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:textSize="16sp"
+        android:text="dialog_message"
+        />
+
+    <EditText
+        android:id="@+id/fr_ef"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="значение"
+        />
+
+</LinearLayout>
+
+<!-- Action area -->
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="right"
+    >
+
+    <Button
+        android:id="@+id/neg_button"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:text="@string/txt_ret" />
+
+    <Button
+        android:id="@+id/pos_button"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_marginStart="8dp"
+        android:text="@string/txt_set" />
+
+
+
+
+
+    </LinearLayout>
+
+    </LinearLayout>
