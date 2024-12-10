@@ -945,10 +945,8 @@ public class SmartTherm {
 
     //MCMD_GET_OT_INFO
     int GetContollerState() {
-        int rc, itmp;
-        byte tmp[] = new byte[4];
-        byte tmpmac[] = new byte[6];
-        short b_flags, itmp2;
+        int rc;
+        short  itmp2;
 
         ByteBuffer bb = ByteBuffer.allocate(6);
         Msg1 ucmd = new Msg1();
