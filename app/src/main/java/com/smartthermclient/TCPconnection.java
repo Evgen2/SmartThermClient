@@ -6,11 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.Date;
 
 class Msg1 implements Serializable
@@ -22,7 +20,7 @@ class Msg1 implements Serializable
     {  Buf = new byte[120];
         cmd0 = cmd = ind = 0;
     }
-};
+}
 
 public class TCPconnection {
     private static final int CMD_HAND_SHAKE = 0x2020;
@@ -152,7 +150,7 @@ public class TCPconnection {
         rc = 0x10 Connection ok, handshake wrong
     * */
     public int InitClientConnection() {
-        int i, l, rc, rc0;
+        int  l, rc, rc0;
         Msg1 ucmd = new Msg1();
         Msg1 outcmd = new Msg1();
 
@@ -342,7 +340,7 @@ public class TCPconnection {
         byte[] bufin = new byte[len+6];
         byte[] bufout = new byte[1500];
         short  sl;
-        int i, nb=0, nba, l;
+        int  nb=0, nba, l;
 
         ucmd.cmd0 =  0x12;
         indcmd = (short)((indcmd+1) & 0xffff);

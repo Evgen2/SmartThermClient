@@ -9,7 +9,6 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 public class SmartUtils {
     String myIPaddr;

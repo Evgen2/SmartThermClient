@@ -5,7 +5,7 @@ import java.util.Date;
 //класс с параметрами/функциями только котла
 public class SmartBoiler {
     int used;
-    byte MacAddr[] = new byte[6];
+    byte[] MacAddr = new byte[6];
     int IknowMycontroller = 0;
     int remote_server_ClientId = -1;     /* Client Id */
     int remote_server_ClientId_k = 0;   /* Client Id key (todo future use) */
