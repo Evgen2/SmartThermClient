@@ -497,8 +497,8 @@ public class SmartTherm {
         {   sts_controller = 1;
             sts_server = 0;
         } else {
-            sts_controller = 0;
-            sts_server = 1;
+            sts_controller = 1; //0; debug
+            sts_server = 0; // 1;
         }
 
         return 0;
@@ -1250,7 +1250,7 @@ public class SmartTherm {
         bb.putInt(use);
         System.arraycopy(bb.array(), 0, ucmd.Buf, 0, 4);
         bb.clear();
-        byte[] b = ServerIpAddress.getBytes();
+        byte[] b = ServerAddress.getBytes();
         l = b.length;
         if (l > 20) l = 20;
         System.arraycopy(b, 0, ucmd.Buf, 4, l);
