@@ -492,23 +492,33 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         {
             str = "Нет связи";
 
-        } else if (MainActivity.st.LastMessage_isfrom == 0) {
-            diffInMillies  = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime());
+        } else if (MainActivity.st.LastMessage_isfrom == 0) { //0 - controller
+
+            diffInMillies = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime());
             System.out.printf("diffInMillies ms %d\n", diffInMillies);
 
             diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.controller_server.Last_work.getTime());
             str = String.format(Locale.ROOT, "котёл %d мс\nконтроллер %d мс", diffInMillies, diffInMillies1);
-        } else if (MainActivity.st.LastMessage_isfrom == 1) {
+
+        } else if (MainActivity.st.LastMessage_isfrom == 1) { //, 1 - remote server
             String str0 ="";
-            diffInMillies  = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime());
+            if(MainActivity.st.myboiler.stsOT == -2)
+            {
+                str = String.format(Locale.ROOT, "котёл: н/д\nконтроллер: н/д");
+                diffInMillies2 = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime());
+                str += "\nсервер " + GetDayHourMinSecMc(diffInMillies2);
+
+            } else {
+                diffInMillies = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime());
 
 //            System.out.printf("diffInMillies ms %d\n", diffInMillies);
-            diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.Last_server_ST_work.getTime());
-            diffInMillies2 = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime());
+                diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.Last_server_ST_work.getTime());
+                diffInMillies2 = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime());
 
-            str = "котёл " +  GetDayHourMinSecMc(diffInMillies) +
-                  "\nконтроллер " +  GetDayHourMinSecMc(diffInMillies1) +
-                  "\nсервер " +   GetDayHourMinSecMc(diffInMillies2);
+                str = "котёл " + GetDayHourMinSecMc(diffInMillies) +
+                        "\nконтроллер " + GetDayHourMinSecMc(diffInMillies1) +
+                        "\nсервер " + GetDayHourMinSecMc(diffInMillies2);
+            }
 
         }
 /*
@@ -549,6 +559,8 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         TextView tv = findViewById(id);
         if(MainActivity.st.myboiler.stsOT == -1)
             str = "Не инициализирован";
+        else if(MainActivity.st.myboiler.stsOT == -2)
+            str = "нет данных";
         else if(MainActivity.st.myboiler.stsOT == 0)
             str = "онлайн";
         else if(MainActivity.st.myboiler.stsOT == 2) {
@@ -782,7 +794,15 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         id = NparamsIds[ind];
         TextView tv = findViewById(id);
 
-        str = String.format(Locale.ROOT, "%.3f",MainActivity.st.myboiler.TroomTarget_toSet );
+        if(MainActivity.st.myboiler.TroomTarget != MainActivity.st.myboiler.TroomTarget_toSet)
+        {   str = String.format(Locale.ROOT, "%.2f %.2f",
+                MainActivity.st.myboiler.TroomTarget_toSet, MainActivity.st.myboiler.TroomTarget);
+
+        } else {
+            str = String.format(Locale.ROOT, "%.2f",
+                    MainActivity.st.myboiler.TroomTarget_toSet );
+        }
+
         tv.setText(str);
 
     }

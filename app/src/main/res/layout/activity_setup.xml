@@ -212,8 +212,6 @@
                         android:autofillHints=""
                         android:ems="10"
                         android:gravity="center_vertical"
-                        android:inputType="number"
-                        android:digits="01234567890."
                         android:minHeight="48dp"
                         tools:ignore="SpeakableTextPresentCheck" />
                 </TableRow>

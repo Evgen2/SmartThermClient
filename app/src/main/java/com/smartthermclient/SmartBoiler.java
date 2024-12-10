@@ -14,6 +14,7 @@ public class SmartBoiler {
     String ControllerIpAddress;
     String Name;
     String FirmwareInfo;
+    boolean Use_remoteTCPserver = false; //
     Date Last_OT_work;//время последнего принятого пакета OpenTherm (см также time_of_server_connect)
 
     int stsOT; // -1 not init, 0 - normal work, 2 - timeout

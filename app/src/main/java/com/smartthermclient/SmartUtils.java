@@ -1,5 +1,7 @@
 package com.smartthermclient;
 
+import static java.lang.Math.abs;
+
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
@@ -86,6 +88,32 @@ public class SmartUtils {
             }
         } catch (Exception ex) { } // for now eat exceptions
         return "";
+    }
+    int InvertColor(int color)
+    { int r,g,b, a, newcolor, l, l1, dl, dl1,dl0;
+        r = (color & 0xff0000)>>16;
+        g = (color & 0x00ff00)>>8;
+        b = color & 0x0000ff;
+        l = r + g*2 +b;
+        a = color & 0xff000000;
+        if(r > 10) r = 255 - r;
+        if(g > 10) g = 255 - g;
+        if(b > 10) b = 255 - b;
+        l1 = r + g*2 +b;
+        dl0 = l1 - l;
+        dl = l1 - b - l;
+        dl1 = l1 - b +255 - l;
+        if(abs(dl0) < abs(dl))
+        {   dl0 = dl; b = 0;
+        }
+        if(abs(dl0) < abs(dl1))
+        {   dl0 = dl; b = 255;
+        }
+
+        a = 0xff000000;
+        newcolor = (r<<16)|(g<<8)|b|a;
+        return newcolor;
+
     }
 
 }

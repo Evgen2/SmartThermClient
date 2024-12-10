@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     public void ExitSmartApp(View v) {
 
         finish();
-
+        finishAffinity();
         // on below line we are exiting our activity
         System.exit(0);
     }
@@ -265,6 +265,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
 
     class InfoMAThread implements Runnable {
         public void run() {

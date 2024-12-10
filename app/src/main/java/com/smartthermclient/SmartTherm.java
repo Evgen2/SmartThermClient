@@ -17,6 +17,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
@@ -74,6 +76,7 @@ public class SmartTherm {
 
     int LocalHomeNetsts =-1; //-1 - неизвестно, 0 Не локальная или не домашняя сеть 1 - локальная домашняя сеть -
     String ServerIpAddress;
+    String Server_default_IpAddress;
     String ServerUserName;
     String ServerUserPwd;
     int ServerTimeout;
@@ -123,7 +126,8 @@ public class SmartTherm {
 
     SmartTherm() {
         sts = 0;
-        ServerIpAddress = "127.0.0.1";
+        ServerIpAddress = "default";
+        Server_default_IpAddress ="80.237.33.121";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             time_of_controller_connect = time_of_server_connect = time_of_last_message = ofEpochSecond(0);
         }
@@ -225,7 +229,7 @@ public class SmartTherm {
     }
 
     int ParsePar(String name, String value) {
-        int known = 0;
+        int known = 0, v;
         if (name.equals("ControllerMac")) {
             String[] addrs = value.split(":");
             {
@@ -303,6 +307,28 @@ public class SmartTherm {
             boiler[2].Name = value;
         } else if (name.equals("ControllerName3")) {
             boiler[3].Name = value;
+        } else if (name.equals("ControllerName")) {
+            myboiler.Name = value;
+        } else if (name.equals("Use_remoteTCPserver0")) {
+            v = Integer.parseInt(value);
+            if( v == 1)   boiler[0].Use_remoteTCPserver = true;
+            else          boiler[0].Use_remoteTCPserver = false;
+        } else if (name.equals("Use_remoteTCPserver1")) {
+            v = Integer.parseInt(value);
+            if( v == 1)   boiler[1].Use_remoteTCPserver = true;
+            else          boiler[1].Use_remoteTCPserver = false;
+        } else if (name.equals("Use_remoteTCPserver2")) {
+            v = Integer.parseInt(value);
+            if( v == 1)   boiler[2].Use_remoteTCPserver = true;
+            else          boiler[2].Use_remoteTCPserver = false;
+        } else if (name.equals("Use_remoteTCPserver3")) {
+            v = Integer.parseInt(value);
+            if( v == 1)   boiler[3].Use_remoteTCPserver = true;
+            else          boiler[3].Use_remoteTCPserver = false;
+        } else if (name.equals("Use_remoteTCPserver")) {
+            v = Integer.parseInt(value);
+            if( v == 1)   myboiler.Use_remoteTCPserver = true;
+            else          myboiler.Use_remoteTCPserver = false;
         } else if (name.equals("ControllerPort")) {
             ControllerPort = Integer.parseInt(value);
             known = 3;
@@ -324,7 +350,7 @@ public class SmartTherm {
 
     int Write(FileOutputStream fout) throws IOException {
         String str;
-        int i, uselog;
+        int i, v;
 
 
         str = String.format(Locale.ROOT, "Nboilers=%d\n", Nboilers);
@@ -342,7 +368,10 @@ public class SmartTherm {
                 fout.write(str.getBytes());
                 str = String.format(Locale.ROOT, "ControllerName%d=%s\n", i, boiler[i].Name);
                 fout.write(str.getBytes());
-
+                v = 0;
+                if(boiler[i].Use_remoteTCPserver) v = 1;
+                str = String.format(Locale.ROOT, "Use_remoteTCPserver%d=%d\n",i, v);
+                fout.write(str.getBytes());
             }
         }
         str = String.format(Locale.ROOT, "IknowMycontroller=%d\n", myboiler.IknowMycontroller);
@@ -352,6 +381,14 @@ public class SmartTherm {
         fout.write(str.getBytes());
         str = String.format(Locale.ROOT, "ControllerIpAddress=%s\n", myboiler.ControllerIpAddress);
         fout.write(str.getBytes());
+        str = String.format(Locale.ROOT, "ControllerName=%s\n",  myboiler.Name);
+        fout.write(str.getBytes());
+
+        v = 0;
+        if(myboiler.Use_remoteTCPserver) v = 1;
+        str = String.format(Locale.ROOT, "Use_remoteTCPserver=%d\n", v);
+        fout.write(str.getBytes());
+
         str = String.format(Locale.ROOT, "ControllerPort=%d\n", ControllerPort);
         fout.write(str.getBytes());
         str = String.format(Locale.ROOT, "ServerIpAddress=%s\n", ServerIpAddress);
@@ -456,7 +493,7 @@ public class SmartTherm {
         }
         if(is == 0) myboiler.IknowMycontroller = 0;
 
-        if(LocalHomeNetsts == 1 || myboiler.IknowMycontroller == 0)
+        if(LocalHomeNetsts == 1 || myboiler.IknowMycontroller == 0 || !myboiler.Use_remoteTCPserver)
         {   sts_controller = 1;
             sts_server = 0;
         } else {
@@ -546,20 +583,23 @@ public class SmartTherm {
 
 /************************/
                         rc = GetContollerCapabilities();
-                        if (rc == 0 && myboiler.IknowMycontroller == 0) {
-                            myboiler.IknowMycontroller = 1;
-                            needSavesetup = 1;
-                        }
-                        rc = GetContollerState();
-                        rc = GetTime(0);
+/**===**/
+                        if (rc == 0) {
+                            if (myboiler.IknowMycontroller == 0) {
+                                myboiler.IknowMycontroller = 1;
+                                needSavesetup = 1;
+                            }
+                            rc = GetContollerState();
+                            rc = GetTime(0);
+                            rc = SetContoller_Tcpserver();
 
 /************************/
-                        while (Theads_Sleep != true) {
-                            if (ControllerThreadRunNeedExit)
-                                break;
-                            rc = loop_net();
-                            need_update_connect_info_event++;
-                            if (rc != 0) {
+                            while (Theads_Sleep != true) {
+                                if (ControllerThreadRunNeedExit)
+                                    break;
+                                rc = loop_net();
+                                need_update_connect_info_event++;
+                                if (rc != 0) {
 //rc = 1 Timeout
 //rc = 2 прочие ошибки
 //rc = 3 плохой сокет
@@ -568,21 +608,25 @@ public class SmartTherm {
 //rc = 6 ответ: неизвестная команда *
 //rc = -1 CONNABORTED
 //rc = -2;
-                                sts = 20 + rc;
-                                need_reconnext = 1;
-                                break;
-                            }
-                            np++;
-                            sts = 4;
+                                    sts = 20 + rc;
+                                    need_reconnext = 1;
+                                    break;
+                                }
+                                np++;
+                                sts = 4;
 //todo
 //                            str = String.format("Пакетов %d", np);
 //                            info_connect_msg = str;
 
-                            try {
-                                Thread.sleep(2000);
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
+                                try {
+                                    Thread.sleep(2000);
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
+/**===**/
+                        } else {
+                            sts = 10;
                         }
                     } else {
                         if (rc == 1)
@@ -605,7 +649,7 @@ public class SmartTherm {
 
                     sl = 2000 + raz * 100;
                     if (raz == 2 || raz > 10) {
-                        if(myboiler.IknowMycontroller != 0) {
+                        if(myboiler.IknowMycontroller != 0 && myboiler.Use_remoteTCPserver) {
                             controller_server.CloseConnection();
                             sts_controller = 0;
                             sts_server = 1;
@@ -654,6 +698,7 @@ public class SmartTherm {
             int need_reconnext = 0;
             int sl;
             String str;
+            String ServerAddress;
             RemoteServerThreadRun = 1;
 
 //          System.out.println("The RemoteServerThread   thread is running");
@@ -677,10 +722,13 @@ public class SmartTherm {
                     }
                     continue;
                 }
-
+                if(ServerIpAddress.equals("default"))
+                    ServerAddress = Server_default_IpAddress;
+                else
+                    ServerAddress = ServerIpAddress;
 
                 try {
-                    rc0 = remote_server.createTCPconnection(ServerIpAddress, ServerPort, 6000);
+                    rc0 = remote_server.createTCPconnection(ServerAddress, ServerPort, 6000);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -778,7 +826,9 @@ public class SmartTherm {
                     //todo
                 } else {
                     sts = 10 + rc0; // 11/12 - createTCPconnection rc = 1/
-                    if (rc0 == 3)
+                    if (rc0 == 1)
+                        sts_server = 11; // host unknown
+                    else if (rc0 == 3)
                         sts_server = 0x44; // Failed  to connect"
                     else
                         sts_server = 10;
@@ -787,7 +837,7 @@ public class SmartTherm {
 
 //                  sl = 2000;
 //todo test
-                    sl = 2000 + raz * 100;
+                    sl = 4000 + raz * 100;
 
                     if (raz == 2 || raz > 10) {
                         sts_controller = 1;
@@ -1076,7 +1126,7 @@ public class SmartTherm {
             server_start_work = new Timestamp(imp1 * 1000);
         }
 
-        if (myboiler.ToSet_start == 1) {
+        if (myboiler.ToSet_start == 1 && myboiler.stsOT != -2) {
             myboiler.enable_CentralHeating_toSet = myboiler.enable_CentralHeating;
             myboiler.enable_HotWater_toSet = myboiler.enable_HotWater;
             myboiler.Tset_toSet = myboiler.Tset;
@@ -1145,6 +1195,17 @@ public class SmartTherm {
             if ((b_flags4 & 0x800) != 0) myboiler.PID_used = true;
             else myboiler.PID_used = false;
 
+            System.arraycopy(outcmd.Buf, 14, tmp2, 0, 2);
+            b_flags = ByteBuffer.wrap(tmp2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
+            boolean tmps;
+            if(b_flags != 0)
+                tmps = true;
+            else
+                tmps = false;
+            if(myboiler.Use_remoteTCPserver != tmps) {
+                myboiler.Use_remoteTCPserver = tmps;
+                needSavesetup = 1;
+            }
         } else {
             System.out.printf("SendAndConfirm rc = %x\n", rc);
         }
@@ -1154,12 +1215,31 @@ public class SmartTherm {
 
     //MCMD_SET_TCPSERVER
     int SetContoller_Tcpserver() {
-        int l, rc;
+        int l, rc, use;
         short b_flags, itmp2;
         ByteBuffer bb = ByteBuffer.allocate(20);
         Msg1 ucmd = new Msg1();
         Msg1 outcmd = new Msg1();
         ucmd.cmd = MCMD_SET_TCPSERVER;
+        String ServerAddress;
+
+        if(ServerIpAddress.equals("default"))
+            ServerAddress = Server_default_IpAddress;
+        else
+            ServerAddress = ServerIpAddress;
+
+        use = 1;
+        try {
+            InetAddress ipAddress = InetAddress.getByName(ServerAddress); // создаем объект который отображает вышеописанный IP-адрес.
+        } catch (UnknownHostException uhe) {
+            uhe.printStackTrace();
+//            errmsg = uhe.toString();
+//            ierr = 1;
+//            return ierr;
+            use = 0;
+        }
+
+
 //статус 4 int
 //IP 20 char
 //report time 4 int
@@ -1167,7 +1247,7 @@ public class SmartTherm {
 
         //formal TCPserver_report_period
         bb.order(ByteOrder.LITTLE_ENDIAN);
-        bb.putInt(1);
+        bb.putInt(use);
         System.arraycopy(bb.array(), 0, ucmd.Buf, 0, 4);
         bb.clear();
         byte[] b = ServerIpAddress.getBytes();
@@ -1456,7 +1536,6 @@ public class SmartTherm {
         }
 
         raz++;
-        color = 0xfff1f1f1;
 
         bt_connect_sts.setBackgroundTintMode(SRC);
 //        ConectStatus_txt.setBackgroundTintMode(SRC);
@@ -1464,8 +1543,6 @@ public class SmartTherm {
             if(sts_controller == 1) {
 //              bcolor =  ContextCompat.getColor(context,R.color.myBlueConroller );
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myBlueConroller, null);
-//                bt_connect_sts.setBackgroundTintList(ColorStateList.valueOf(R.color.myBlueConroller));
-//                bt_connect_sts.setBackgroundTintList(ColorStateList.valueOf(bcolor));
                 diffInSec = Math.abs(now.getTime() - MainActivity.st.controller_server.Last_work.getTime())/1000;
                 if(MainActivity.st.controller_server.work && diffInSec > 10)
                     str = String.format(Locale.ROOT, "Нет связи с контроллером %d сек %d (%d %d)", diffInSec, raz, sts_controller, sts_server);
@@ -1474,18 +1551,14 @@ public class SmartTherm {
             } else if(sts_controller == 2) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myGreenConroller, null);
 //                bt_connect_sts.setBackgroundTintList(ColorStateList.valueOf(R.color.myGreenConroller));
-                color = 0xa0202040;
                 str = String.format(Locale.ROOT, "Связываемся с контроллером %d (%d %d)", raz, sts_controller, sts_server);
 //                   str = String.format(Locale.ROOT, "Связь с контроллером OK %d (%d %d)", raz, sts_controller, sts_server);
             } else if(sts_controller == 3) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myGreenConroller1, null);
-                color = 0xff202020;
                 str = String.format(Locale.ROOT, "Связь с контроллером работает %d (%d %d)", raz, sts_controller, sts_server);
             } else if(sts_controller == 10) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myWaitConroller, null);
-                color = 0xa0404040;
                 str = String.format(Locale.ROOT, "Пауза %d (%d %d)", raz, sts_controller, sts_server);
-
             } else {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myRedConroller, null);
                 str = String.format(Locale.ROOT, "Ошибка связи с контроллером %d (%d %d)", raz, sts_controller, sts_server);
@@ -1506,15 +1579,15 @@ public class SmartTherm {
             } else if(info_sts_server == 2) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myGreenServer, null);
                 str = String.format(Locale.ROOT, "Связь с сервером ОК %d (%d %d)", raz, sts_controller, sts_server);
-                color = 0xff202020;
             } else if(info_sts_server == 3) {
                 bcolor = ResourcesCompat.getColor(context.getResources(), R.color.myGreenServer1, null);
                 str = String.format(Locale.ROOT, "Связь с сервером работает %d (%d %d) %d", raz, sts_controller, sts_server, np_server);
-                color = 0xff202020;
             } else if(info_sts_server == 10) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myWaitConroller, null);
-                color = 0xD0405040;
                 str = String.format(Locale.ROOT, "Пауза %d (%d %d)", raz, sts_controller, sts_server);
+            } else if(info_sts_server == 11) {
+                bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myWaitConroller, null);
+                str = String.format(Locale.ROOT, "Host Unknown %s (%d %d)", ServerIpAddress, sts_controller, sts_server);
             }  else if(info_sts_server == 0x40) {
                 bcolor = ResourcesCompat.getColor(context.getResources(), R.color.myRedServer1, null);
                 str = String.format(Locale.ROOT, "Серевер не знает контроллера %d (%d %d)", raz, sts_controller, sts_server);
@@ -1543,6 +1616,7 @@ public class SmartTherm {
 //        ConectStatus_txt.setText(str);
 
 //        bt_connect_sts.setBackgroundTintList(ColorStateList.valueOf(rid));
+        color = sutils.InvertColor(bcolor); // 0xff405040;
         bt_connect_sts.setBackgroundTintList(ColorStateList.valueOf(bcolor));
         bt_connect_sts.setText(str);
         bt_connect_sts.setTextColor(color);

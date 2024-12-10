@@ -395,6 +395,14 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
 
 
     public void BS_SetupReturnToMainActivity(View v) {
+        needExitInfoTherad = true;
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+
         if((isChange & 0x02) == 0x02) {
             SmartTherm.needRestartSetup = 1;
         }
@@ -449,7 +457,7 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
     @Override
     protected void onResume()
     {
-        super. onResume();
+        super.onResume();
         MainActivity.st.SleepDispatcher(true, 2);
 
     }

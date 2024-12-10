@@ -5,16 +5,16 @@
     <color name="myRed">  #90FF0000</color>
     <color name="myGreenConroller"> #8000C000</color>
     <color name="myGreenConroller1">#8000EF00</color>
-    <color name="myBlueConroller">  #800000FF</color>
+    <color name="myBlueConroller">  #900000FF</color>
     <color name="myRedConroller">   #A0FF0000</color>
-    <color name="myWaitConroller">  #D0701020</color>
+    <color name="myWaitConroller">  #E0801020</color>
     <color name="myGreenServer">    #8000B020</color>
     <color name="myGreenServer1">   #C000D020</color>
     <color name="myBlueServer">     #E00020DF</color>
     <color name="myRedServer">      #E0DF2020</color>
     <color name="myRedServer1">     #E0B03020</color>
     <color name="myGreyOffline">    #FF807070</color>
-    <color name="myBlue">   #800000FF</color>
-    <color name="myYellow"> #80FFFF00</color>
+    <color name="myBlue">   #900000FF</color>
+    <color name="myYellow"> #90FFFF00</color>
     <color name="CurrentSelect"> #FFF6F1F1</color>
 </resources>

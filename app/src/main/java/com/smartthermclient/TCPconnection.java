@@ -81,7 +81,17 @@ public class TCPconnection {
         address = _address;
         String str;
         timeoutConnect =_timeoutConnect;
-        InetAddress ipAddress = InetAddress.getByName(_address); // создаем объект который отображает вышеописанный IP-адрес.
+/*
+        try {
+            InetAddress ipAddress = InetAddress.getByName(_address); // создаем объект который отображает вышеописанный IP-адрес.
+        } catch (UnknownHostException uhe) {
+            uhe.printStackTrace();
+            errmsg = uhe.toString();
+            ierr = 1;
+            return ierr;
+        }
+
+ */
         try {
             str =String.format("Connecting to %s port %d ", address, serverPort);
             errmsg = str;
