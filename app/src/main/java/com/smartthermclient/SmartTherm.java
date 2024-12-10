@@ -497,8 +497,8 @@ public class SmartTherm {
         {   sts_controller = 1;
             sts_server = 0;
         } else {
-            sts_controller = 1; //0; debug
-            sts_server = 0; // 1;
+            sts_controller = 0;
+            sts_server =  1;
         }
 
         return 0;
@@ -883,10 +883,9 @@ public class SmartTherm {
 //ACMD_SET_STATE_C   mode 0
 //ACMD_SET_STATE_S   mode 1
     int SetContollerState(int mode) {
-        int rc, dst,itmp;
-        byte tmp[] = new byte[4];
+        int rc, dst;
         byte tmpmac[] = new byte[6];
-        short b_flags, itmp2;
+        short b_flags;
 
         ByteBuffer bb = ByteBuffer.allocate(6);
 
