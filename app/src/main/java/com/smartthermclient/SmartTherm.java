@@ -75,6 +75,7 @@ public class SmartTherm {
     static int needRestartSetup;
 
     int LocalHomeNetsts =-1; //-1 - неизвестно, 0 Не локальная или не домашняя сеть 1 - локальная домашняя сеть -
+    int useLocalNet = -1;
     String ServerIpAddress;
     String Server_default_IpAddress;
     String ServerUserName;
@@ -493,7 +494,7 @@ public class SmartTherm {
         }
         if(is == 0) myboiler.IknowMycontroller = 0;
 
-        if(LocalHomeNetsts == 1 || myboiler.IknowMycontroller == 0 || !myboiler.Use_remoteTCPserver)
+        if((LocalHomeNetsts == 1) || (myboiler.IknowMycontroller == 0) || !myboiler.Use_remoteTCPserver || (useLocalNet == 1))
         {   sts_controller = 1;
             sts_server = 0;
         } else {
@@ -533,7 +534,7 @@ public class SmartTherm {
 
     class ControllerThread implements Runnable {
         public void run() {
-            int rc, rc0;
+            int rc;
             int np = 0, raz = 0;
             int need_reconnext = 0;
             int sl;
@@ -580,11 +581,12 @@ public class SmartTherm {
                         str = String.format("\n%s type %x code %d", controller_server.serverIdentify, controller_server.servercode, controller_server.servertype);
                         infomsg += str;
                         need_update_connect_info_event++;
+                        useLocalNet = 1;
 
 /************************/
                         rc = GetContollerCapabilities();
 /**===**/
-                        if (rc == 0) {
+                        if (rc == 0 || rc == 1) {
                             if (myboiler.IknowMycontroller == 0) {
                                 myboiler.IknowMycontroller = 1;
                                 needSavesetup = 1;
@@ -652,6 +654,7 @@ public class SmartTherm {
                         if(myboiler.IknowMycontroller != 0 && myboiler.Use_remoteTCPserver) {
                             controller_server.CloseConnection();
                             sts_controller = 0;
+                            useLocalNet = 0;
                             sts_server = 1;
                         }
                         if (raz > 100)
@@ -981,8 +984,7 @@ public class SmartTherm {
     //ACMD_GET_STS_S
 //аналогично MCMD_GET_OT_INFO плюс информация о времени последнего сеанса связи
     int GetContollerState_from_remote_server() {
-        int rc, itmp;
-        byte tmp[] = new byte[4];
+        int rc;
         byte tmpmac[] = new byte[6];
         short b_lags, itmp2;
         ByteBuffer bb = ByteBuffer.allocate(4);

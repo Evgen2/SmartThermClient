@@ -471,7 +471,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
     //TAB_CONNECT
     void Update_ConnectStatus(int ind)
     {   int id;
-        long diffInMillies;
+        long diffInMillies, OT_work_time;
         long diffInMillies1;
         long diffInMillies2;
         String str ="todo";
@@ -484,6 +484,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         UpdateFlag++;
 
         Date now = new Date();
+        OT_work_time = MainActivity.st.myboiler.Last_OT_work.getTime();
 //Last_OT_work
 //Last_server_ST_work
 //controller_server.Last_work
@@ -493,31 +494,43 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
             str = "Нет связи";
 
         } else if (MainActivity.st.LastMessage_isfrom == 0) { //0 - controller
+            if(MainActivity.st.myboiler.stsOT <= -1 || OT_work_time == 0)
+            {
+                str = String.format(Locale.ROOT, "котёл: н/д");
 
-            diffInMillies = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime());
-            System.out.printf("diffInMillies ms %d\n", diffInMillies);
+            } else {
+                diffInMillies = Math.abs(now.getTime() - OT_work_time);
+                System.out.printf("diffInMillies ms %d\n", diffInMillies);
 
-            diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.controller_server.Last_work.getTime());
-            str = String.format(Locale.ROOT, "котёл %d мс\nконтроллер %d мс", diffInMillies, diffInMillies1);
+                diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.controller_server.Last_work.getTime());
+                str = String.format(Locale.ROOT, "котёл %s\nконтроллер %s", GetDayHourMinSecMc(diffInMillies), GetDayHourMinSecMc(diffInMillies1));
+            }
 
         } else if (MainActivity.st.LastMessage_isfrom == 1) { //, 1 - remote server
             String str0 ="";
+            str = "котёл: ";
             if(MainActivity.st.myboiler.stsOT == -2)
             {
-                str = String.format(Locale.ROOT, "котёл: н/д\nконтроллер: н/д");
+                str += String.format(Locale.ROOT, "н/д\nконтроллер: н/д");
                 diffInMillies2 = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime());
                 str += "\nсервер " + GetDayHourMinSecMc(diffInMillies2);
 
             } else {
-                diffInMillies = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime());
+                if(MainActivity.st.myboiler.stsOT == -1 || OT_work_time == 0)
+                {
+                    str += String.format(Locale.ROOT, "н/д");
+
+                } else {
+                    diffInMillies = Math.abs(now.getTime() - OT_work_time);
 
 //            System.out.printf("diffInMillies ms %d\n", diffInMillies);
-                diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.Last_server_ST_work.getTime());
-                diffInMillies2 = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime());
+                    diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.Last_server_ST_work.getTime());
+                    diffInMillies2 = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime());
 
-                str = "котёл " + GetDayHourMinSecMc(diffInMillies) +
-                        "\nконтроллер " + GetDayHourMinSecMc(diffInMillies1) +
-                        "\nсервер " + GetDayHourMinSecMc(diffInMillies2);
+                    str += GetDayHourMinSecMc(diffInMillies) +
+                            "\nконтроллер " + GetDayHourMinSecMc(diffInMillies1) +
+                            "\nсервер " + GetDayHourMinSecMc(diffInMillies2);
+                }
             }
 
         }
