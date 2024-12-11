@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -99,7 +100,10 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        bt_connect_sts  = (MaterialButton) findViewById(R.id.SmartA_ConnectStatus_button);
+
+        Button bt_tmp;
+        bt_tmp = findViewById(R.id.SmartA_ConnectStatus_button);
+        bt_connect_sts = (MaterialButton)bt_tmp;
         SA_context = getApplicationContext();
         tl = (TableLayout) findViewById(R.id.Table_SmartA);
         wPar = 0.5f;
