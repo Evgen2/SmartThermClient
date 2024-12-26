@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.os.Build;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.google.android.material.button.MaterialButton;
@@ -191,7 +192,6 @@ public class SmartTherm {
     }
 
     int read(FileInputStream fin) {
-        int rc, nb = 0;
         String varname;
         String value;
         System.out.print("SmartTherm read\n");
@@ -349,6 +349,7 @@ public class SmartTherm {
         return known;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
     int Write(FileOutputStream fout) throws IOException {
         String str;
         int i, v;
@@ -1036,8 +1037,16 @@ public class SmartTherm {
         else myboiler.MQTT_used = false;
         if ((b_flags & 0x400) != 0) myboiler.PID_present = true;
         else myboiler.PID_present = false;
-        if ((b_flags & 0x800) != 0) myboiler.PID_used = true;
-        else myboiler.PID_used = false;
+
+        {   boolean btmp;
+
+            if ((b_flags & 0x800) != 0)  btmp = true;
+            else btmp = false;
+            if(btmp != myboiler.PID_used)
+            {   myboiler.ToSet_start = 1;
+                myboiler.PID_used = btmp;
+            }
+        }
 
         System.arraycopy(outcmd.Buf, 2, tmp, 0, 2);
         itmp2 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
@@ -1048,7 +1057,6 @@ public class SmartTherm {
         if(imp1 == 0)
         {
             System.out.println("imp1 == 0\n");
-
         }
         myboiler.Last_OT_work = new Timestamp(imp1 * 1000);
         System.out.printf("Last_OT_work =%s\n", myboiler.Last_OT_work);

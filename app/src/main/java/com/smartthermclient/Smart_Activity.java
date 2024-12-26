@@ -847,7 +847,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         bundle.putInt("type",2);
         bundle.putString("title", "Уставка температуры");
         bundle.putString("edttext", "в помещении");
-        bundle.putFloat("Float", MainActivity.st.myboiler.TroomTarget_toSet);
+        bundle.putFloat("Float", SmartTherm.myboiler.TroomTarget_toSet);
 // set Fragmentclass Arguments
         FragmentManager fm = getSupportFragmentManager();
         SetTemp_DialogFragment editNameDialogFragment = SetTemp_DialogFragment.newInstance("");

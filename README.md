@@ -1,8 +1,9 @@
 # SmartThermClient
 
-Version 1.0
+Version 1.0.1
 
-Open source Android client for [SmartTherm](https://github.com/Evgen2/SmartTherm) ESP32 OpenTherm controller
+Open source Android client for [SmartTherm](https://github.com/Evgen2/SmartTherm) ESP32 OpenTherm controller and  [Personal cloud control](https://github.com/Evgen2/SmartServer)
+
 
 
 
