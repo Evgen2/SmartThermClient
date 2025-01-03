@@ -19,7 +19,7 @@ public class SmartBoiler {
 
     int stsOT; // -1 not init, 0 - normal work, 2 - timeout
     int BoilerStatus;
-    public int CapabilitiesFlags; //Флаги возможностей
+    public int CapabilitiesFlags = 0; //Флаги возможностей
     boolean enable_CentralHeating;
     boolean enable_HotWater;
     boolean enable_Cooling;
@@ -27,6 +27,7 @@ public class SmartBoiler {
     boolean HotWater_present;
     boolean CH2_present;
     boolean RetT_present;
+    boolean DhwT_present;
     boolean Toutside_present;
     boolean Pressure_present;
     boolean MQTT_present;
@@ -75,6 +76,7 @@ public class SmartBoiler {
         Toutside_present = false;
         Pressure_present = false;
         RetT_present = false;
+        DhwT_present = false;
         MQTT_present = MQTT_used = PID_present = PID_used = false;
         BoilerT = 0.F;
         Dhw_T = RetT = 0.F;

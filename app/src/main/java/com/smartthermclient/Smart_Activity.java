@@ -69,7 +69,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
 
     @Override
     public void onFinishSetTempDialog(int par, float val, String inputText) {
-        System.out.printf("%s\n", inputText);
+//        System.out.printf("%s\n", inputText);
         switch (par)
         {
             case 1:
@@ -199,34 +199,35 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         AddTableRow(Nparams+1, "Уставка\nот контроллера"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_STATEBOILERMASTER;
         AddTableRow(Nparams+1, "Выход,°C"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_BOILERT;
         AddTableRow(Nparams+1, "Уставка выхода,°C"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_TSET;
-        if(MainActivity.st.myboiler.RetT_present)
+
+        if(SmartTherm.myboiler.RetT_present)
         {   AddTableRow(Nparams+1, "Обратка,°C"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_TRET;
         }
-        if(MainActivity.st.myboiler.HotWater_present)
+        if(SmartTherm.myboiler.HotWater_present)
         {   AddTableRow(Nparams+1, "Горячая вода,°C"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_HOTWATER;
         }
         AddTableRow(Nparams+1, "Модуляция пламени, %"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_FLAMEMODULATION;
-        if(MainActivity.st.myboiler.Pressure_present)
+        if(SmartTherm.myboiler.Pressure_present)
         {   AddTableRow(Nparams+1, "Давление"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_PRESSURE;
         }
-        if((MainActivity.st.myboiler.status_D18b20 & 0x0303) > 0)
+        if((SmartTherm.myboiler.status_D18b20 & 0x0303) > 0)
         {   AddTableRow(Nparams+1, "T1 | T2,°C"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_T1_T2;
         }
-        if(MainActivity.st.myboiler.Toutside_present)
+        if(SmartTherm.myboiler.Toutside_present)
         {   AddTableRow(Nparams+1, "Text,°C"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_TOUTSIDE;
         }
-        if(MainActivity.st.myboiler.MQTT_present || MainActivity.st.myboiler.PID_present)
+        if(SmartTherm.myboiler.MQTT_present || SmartTherm.myboiler.PID_present)
         {   String str0="";
-            if(MainActivity.st.myboiler.MQTT_present && MainActivity.st.myboiler.PID_present)
+            if(SmartTherm.myboiler.MQTT_present && SmartTherm.myboiler.PID_present)
                 str0 = "MQTT & PID";
-            else if (MainActivity.st.myboiler.MQTT_present)
+            else if (SmartTherm.myboiler.MQTT_present)
                 str0 = "MQTT";
             else
                 str0 = "PID";
             AddTableRow(Nparams+1, str0    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_USE_PID_MQTT;
         }
 
-        if(MainActivity.st.myboiler.PID_used)
+        if(SmartTherm.myboiler.PID_used)
         {   AddTableRow(Nparams+1, "Уставка температуры\nпомещения,°C"    ,wPar, String.format(Locale.ROOT, "%.1f",MainActivity.st.myboiler.TroomTarget_toSet), wState, tl,2);
             idParams[Nparams++] = TAB_SET_ROOM_SETPOINT;
         } else {
@@ -234,7 +235,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
 //            idSet_Tset_ef = NparamsIds[Nparams];
             idParams[Nparams++] = TAB_SET_CH;
         }
-        if(MainActivity.st.myboiler.HotWater_present)
+        if(SmartTherm.myboiler.HotWater_present)
         {   AddTableRow(Nparams+1, "Уставка температуры\nгорячей воды,°C",wPar, String.format(Locale.ROOT, "%.1f",MainActivity.st.myboiler.TdhwSet_toSet),wState, tl,3);
 //            idSet_Tset_ef = NparamsIds[Nparams];
             idParams[Nparams++] = TAB_SET_DHW_SETPOINT;
@@ -504,7 +505,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
 
             } else {
                 diffInMillies = Math.abs(now.getTime() - OT_work_time);
-                System.out.printf("diffInMillies ms %d\n", diffInMillies);
+//                System.out.printf("diffInMillies ms %d\n", diffInMillies);
 
                 diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.controller_server.Last_work.getTime());
                 str = String.format(Locale.ROOT, "котёл %s\nконтроллер %s", GetDayHourMinSecMc(diffInMillies), GetDayHourMinSecMc(diffInMillies1));

@@ -194,7 +194,7 @@ public class SmartTherm {
     int read(FileInputStream fin) {
         String varname;
         String value;
-        System.out.print("SmartTherm read\n");
+//        System.out.print("SmartTherm read\n");
         BufferedReader reader = null;
 
         try {
@@ -202,7 +202,7 @@ public class SmartTherm {
             reader = new BufferedReader(in);
             String line = reader.readLine();
             while (line != null) {
-                System.out.printf("Read %s \n", line);
+//                System.out.printf("Read %s \n", line);
                 String[] pars = line.split("=");
                 if (pars.length == 2) {
                     varname = pars[0];
@@ -470,7 +470,7 @@ public class SmartTherm {
 
     int Init()  {
         int i, is;
-        System.out.print("SmartTherm Init\n");
+//        System.out.print("SmartTherm Init\n");
         /* если запущены нитки связи контроллером или ужаленным сервером выходим из них */
         if(ControllerThreadRun != 0 || RemoteServerThreadRun != 0) {
             ControllerThreadRunNeedExit = true;
@@ -513,7 +513,7 @@ public class SmartTherm {
             user_ConrollerThread = new ControllerThread();
             Thread threadInfo = new Thread(user_ConrollerThread, "T1");
             threadInfo.start();
-            System.out.println("user_Thread.exit=" + exit);
+//            System.out.println("user_Thread.exit=" + exit);
 
             try {
                 Thread.sleep(100);
@@ -527,7 +527,7 @@ public class SmartTherm {
             user_ServerThread = new RemoteServerThread();
             Thread threadInfo1 = new Thread(user_ServerThread, "T2");
             threadInfo1.start();
-            System.out.println("user_Thread.exit=" + exit);
+//            System.out.println("user_Thread.exit=" + exit);
         }
 
         return 0;
@@ -539,7 +539,7 @@ public class SmartTherm {
             int np = 0, raz = 0;
             int need_reconnext = 0;
             int sl;
-            System.out.println("The UserThread  thread is running");
+//            System.out.println("The UserThread  thread is running");
             ControllerThreadRun = 1;
             controller_server = new TCPconnection();
             while (true) {
@@ -572,7 +572,7 @@ public class SmartTherm {
                             time_of_controller_connect = Instant.now();
                         }
                     }
-                    System.out.printf("createTCPconnection rc  %d\n", rc);
+//                    System.out.printf("createTCPconnection rc  %d\n", rc);
                     rc = controller_server.InitClientConnection();
                     if (rc == 0) {
                         String str;
@@ -677,7 +677,7 @@ public class SmartTherm {
                     controller_server.CloseConnection();
                 sl = 5000;
 
-                System.out.print("Sleep2 5000\n");
+//                System.out.print("Sleep2 5000\n");
                 if (sts_controller > 0 && sts_controller < 0X40)
                     sts_controller = 10;
 
@@ -738,14 +738,14 @@ public class SmartTherm {
                 }
                 if (rc0 == 0) {
                     infomsg = "Connected";
-                    System.out.printf("remote_server connected\n");
+//                    System.out.printf("remote_server connected\n");
 
                     raz = 0;
                     need_reconnext = 0;
                     sts_server = 2;
                     np_server = 0;
                     need_update_connect_info_event++;
-                    System.out.printf("createTCPconnection rc0  %d\n", rc0);
+//                    System.out.printf("createTCPconnection rc0  %d\n", rc0);
                     rc = remote_server.InitClientConnection();
                     if (rc == 0) {
                         np_server++;
@@ -764,9 +764,9 @@ public class SmartTherm {
                             need_update_connect_info_event++;
                         }
                         if (!myboiler.have_remote_server_ClientId) {
-                            System.out.printf("remote_server InitClientConnection\n");
+//                            System.out.printf("remote_server InitClientConnection\n");
                             rc = Ask_RemoteServer_MyContoller();
-                            System.out.printf("Ask_RemoteServer_MyContoller rc=%d\n", rc);
+//                            System.out.printf("Ask_RemoteServer_MyContoller rc=%d\n", rc);
                             need_update_connect_info_event++;
                         }
                         if (rc == 0x0) {
@@ -788,7 +788,7 @@ public class SmartTherm {
                                         break;
                                     rc = loop_server_net();
                                     need_update_connect_info_event++;
-                                    System.out.printf("loop_server_net rc=%d %d %d\n", rc, np_server, np1);
+//                                    System.out.printf("loop_server_net rc=%d %d %d\n", rc, np_server, np1);
                                     if (rc != 0) {
                                         sts = 20 + rc;
                                         need_reconnext = 1;
@@ -826,7 +826,7 @@ public class SmartTherm {
                             time_of_server_connect = Instant.now();
                         }
                     }
-                    System.out.printf("create server TCPconnection rc  %d\n", rc);
+//                    System.out.printf("create server TCPconnection rc  %d\n", rc);
                     //todo
                 } else {
                     sts = 10 + rc0; // 11/12 - createTCPconnection rc = 1/
@@ -970,10 +970,10 @@ public class SmartTherm {
         rc = controller_server.SendAndConfirm(ucmd, 6, outcmd, 72);
         if (rc == 0) {
             FillSmartStsFromMsg(outcmd, 0);
-            System.out.printf("BoilerStatus = %x ", myboiler.BoilerStatus);
-            System.out.printf("BoilerT = %f ", myboiler.BoilerT);
-            System.out.printf("RetT = %f ", myboiler.RetT);
-            System.out.printf("Dhw_T = %f\n", myboiler.Dhw_T);
+//            System.out.printf("BoilerStatus = %x ", myboiler.BoilerStatus);
+//            System.out.printf("BoilerT = %f ", myboiler.BoilerT);
+//            System.out.printf("RetT = %f ", myboiler.RetT);
+//            System.out.printf("Dhw_T = %f\n", myboiler.Dhw_T);
             need_update_event++;
         } else {
             System.out.printf("SendAndConfirm rc = %x\n", rc);
@@ -1017,7 +1017,7 @@ public class SmartTherm {
         float x;
         System.arraycopy(outcmd.Buf, 0, tmp, 0, 2);
         b_flags = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
-        myboiler.CapabilitiesFlags = b_flags & ~(0x03|0x200);
+        myboiler.CapabilitiesFlags = b_flags & ~(0x03|0x200); //???
         if ((b_flags & 0x01) != 0) myboiler.enable_CentralHeating = true;
         else myboiler.enable_CentralHeating = false;
         if ((b_flags & 0x02) != 0) myboiler.enable_HotWater = true;
@@ -1030,6 +1030,12 @@ public class SmartTherm {
         else myboiler.Toutside_present = false;
         if ((b_flags & 0x80) != 0) myboiler.Pressure_present = true;
         else myboiler.Pressure_present = false;
+        if ((b_flags & 0x1000) != 0) myboiler.RetT_present = true;
+        else myboiler.RetT_present = false;
+
+        if ((b_flags & 0x2000) != 0) myboiler.DhwT_present = true;
+        else myboiler.DhwT_present = false;
+
 
         if ((b_flags & 0x100) != 0) myboiler.MQTT_present = true;
         else myboiler.MQTT_present = false;
@@ -1054,12 +1060,12 @@ public class SmartTherm {
         long imp1;
         System.arraycopy(outcmd.Buf, 4, tmp, 0, 4);
         imp1 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
-        if(imp1 == 0)
-        {
-            System.out.println("imp1 == 0\n");
-        }
+//        if(imp1 == 0)
+//        {
+//            System.out.println("imp1 == 0\n");
+//        }
         myboiler.Last_OT_work = new Timestamp(imp1 * 1000);
-        System.out.printf("Last_OT_work =%s\n", myboiler.Last_OT_work);
+//        System.out.printf("Last_OT_work =%s\n", myboiler.Last_OT_work);
         System.arraycopy(outcmd.Buf, 8, tmp, 0, 4);
         itmp = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
         myboiler.BoilerStatus = itmp;
@@ -1127,7 +1133,7 @@ public class SmartTherm {
             System.arraycopy(outcmd.Buf, 72, tmp, 0, 4);
             imp1 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
             Last_server_ST_work = new Timestamp(imp1 * 1000);
-            System.out.printf("Last_server_ST_work =%s\n", Last_server_ST_work);
+//            System.out.printf("Last_server_ST_work =%s\n", Last_server_ST_work);
             System.arraycopy(outcmd.Buf, 76, tmp, 0, 4);
             imp1 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
             server_start_work = new Timestamp(imp1 * 1000);
@@ -1175,12 +1181,7 @@ public class SmartTherm {
                 return 1;
 
             if ((b_flags & 0x01) != 0) myboiler.enable_CentralHeating = true;
-            myboiler.CH2_present = false;
-            myboiler.Toutside_present = false;
-            myboiler.Pressure_present = false;
-            myboiler.RetT_present = false;
-
-            System.arraycopy(outcmd.Buf, 10, tmp, 0, 4);
+            //todo
 
             if ((b_flags4 & 0x01) != 0) myboiler.HotWater_present = true;
             else myboiler.HotWater_present = false;
@@ -1188,10 +1189,13 @@ public class SmartTherm {
             else myboiler.CH2_present = false;
             if ((b_flags4 & 0x04) != 0) myboiler.RetT_present = true;
             else myboiler.RetT_present = false;
+
             if ((b_flags4 & 0x08) != 0) myboiler.Toutside_present = true;
             else myboiler.Toutside_present = false;
             if ((b_flags4 & 0x10) != 0) myboiler.Pressure_present = true;
             else myboiler.Pressure_present = false;
+            if ((b_flags4 & 0x2000) != 0) myboiler.DhwT_present = true;
+            else myboiler.DhwT_present = false;
 
             if ((b_flags4 & 0x100) != 0) myboiler.MQTT_present = true;
             else myboiler.MQTT_present = false;
@@ -1309,13 +1313,13 @@ public class SmartTherm {
 
                 Date date = new Timestamp(imp1 * 1000 + usec/1000);
                 Date dateNow = new Date();
-                System.out.println(date);
+//                System.out.println(date);
                 tz = TimeZone.getDefault();
                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
                 df.setTimeZone(tz);
-                System.out.println("Date and time " + df.format(date));
+//                System.out.println("Date and time " + df.format(date));
                 diffInMillies  = dateNow.getTime() - date.getTime();
-                System.out.printf("diffInMillies = %d\n", diffInMillies );
+//                System.out.printf("diffInMillies = %d\n", diffInMillies );
                 if(diffInMillies < -50 ||diffInMillies > 50) {
                     SetTime(0);
                 }
@@ -1326,7 +1330,7 @@ public class SmartTherm {
                 Date date = new Timestamp(t_sec * 1000);
 //               Instant instant = ofEpochSecond(t_sec);
 
-                System.out.println(date);
+//                System.out.println(date);
             } else {
                 return -1;
             }
@@ -1351,7 +1355,7 @@ public class SmartTherm {
         Msg1 ucmd = new Msg1();
         Msg1 outcmd = new Msg1();
         ucmd.cmd = MCMD_SETTIME;
-        System.out.printf("SetTime t %d ms %d\n", t, ms);
+//        System.out.printf("SetTime t %d ms %d\n", t, ms);
 
         bb.order(ByteOrder.LITTLE_ENDIAN);
         bb.putInt(t);
@@ -1363,13 +1367,13 @@ public class SmartTherm {
         System.arraycopy (bb.array(), 0, ucmd.Buf, 4,4);
         bb.clear();
 
-        System.out.printf("controller_server.SendAndConfirm()\n");
+//        System.out.printf("controller_server.SendAndConfirm()\n");
 
         rc = controller_server.SendAndConfirm(ucmd, 8, outcmd, 0);
         if (rc == 0) {
 
         }
-        System.out.printf("SetTime rc %d\n", rc);
+//        System.out.printf("SetTime rc %d\n", rc);
         return rc;
     }
     /***************************************************/
@@ -1388,7 +1392,7 @@ public class SmartTherm {
         Msg1 outcmd = new Msg1();
         ucmd.cmd = MCMD_IDENTIFY;
         rc =  remote_server.SendAndConfirm2(ucmd, 6, outcmd,126, 6, 1,0x12);
-   System.out.printf("SendAndConfirm2  rc = %x\n", rc);
+//   System.out.printf("SendAndConfirm2  rc = %x\n", rc);
         if (rc == 0)
         {    int idcode, idtype, idNumber;
             short sl;
@@ -1514,7 +1518,7 @@ public class SmartTherm {
             b_flags4 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
             if(b_flags4 == 0x01) {
                 rc = Send_to_server_IdentifySelf();
-                System.out.printf("Send_to_server_IdentifySelf rc=%d\n", rc);
+//                System.out.printf("Send_to_server_IdentifySelf rc=%d\n", rc);
             } else {
                 rc = 0x10;
             }

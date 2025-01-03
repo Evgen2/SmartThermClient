@@ -52,11 +52,12 @@ public class MainActivity extends AppCompatActivity {
             setup(1);
             onstart = 0;
         }
-        if(st.needSavesetup != 0) {
+        if(SmartTherm.needSavesetup != 0) {
             WriteSetup();
         }
 
-        bt_connect_sts  = this.<MaterialButton>findViewById(R.id.ConnectStatus_button);
+        bt_connect_sts  = this.findViewById(R.id.ConnectStatus_button);
+
 
         StartInfoMAThread();
     }
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void StartSmart_Activity(View v) {
-        if(st.myboiler.IknowMycontroller == 0 || (st.controller_server.work == false && st.remote_server.work == false))
+        if(SmartTherm.myboiler.IknowMycontroller == 0 || (!st.controller_server.work && !st.remote_server.work))
             MyWarning();
         else
         {   Intent intent = new Intent(this, Smart_Activity.class);
@@ -120,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("Time: " + time);
         st.Init();
         st.ControllerConnection();
-        st.needRestartSetup = 0;
+        SmartTherm.needRestartSetup = 0;
     }
 
 
@@ -128,11 +129,11 @@ public class MainActivity extends AppCompatActivity {
         int rc, nb = 0;
         FileInputStream fin = null;
         try {
-            fin = openFileInput(st.SetupFile);
+            fin = openFileInput(SmartTherm.SetupFile);
             st.read(fin);
             fin.close();
         } catch (FileNotFoundException e) {
-            System.out.printf("file %s not found\n", st.SetupFile);
+            System.out.printf("file %s not found\n", SmartTherm.SetupFile);
             e.printStackTrace();
             return 1;
         } catch (IOException e) {
@@ -150,13 +151,13 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             // отрываем поток для записи
-            fout = openFileOutput(st.SetupFile, MODE_PRIVATE);
+            fout = openFileOutput(SmartTherm.SetupFile, MODE_PRIVATE);
             // пишем данные
             rc = st.Write(fout);
             //           fout.write("Содержимое файла".getBytes());
             // закрываем поток
             fout.close();
-            System.out.printf("Write %s file rc=%d\n", st.SetupFile, rc);
+            System.out.printf("Write %s file rc=%d\n", SmartTherm.SetupFile, rc);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -168,16 +169,16 @@ public class MainActivity extends AppCompatActivity {
         String str="";
         // Create the object of AlertDialog Builder class
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        if(st.controller_server.work == false)
-        {   if(st.myboiler.IknowMycontroller == 0)
+        if(!st.controller_server.work)
+        {   if(SmartTherm.myboiler.IknowMycontroller == 0)
             str = "С контроллером нет связи\nнастройте параметры";
-            else if(st.remote_server.work == false)
+            else if(!st.remote_server.work)
             str = "Нет связи\nни с контроллером, ни с сервером";
-        } else if(st.myboiler.IknowMycontroller == 0) {
+        } else if(SmartTherm.myboiler.IknowMycontroller == 0) {
             str = "Связь с контроллером есть,\nно или нет связи с котлом, или надо подождать минуту";
         }
 
-        if(st.myboiler.IknowMycontroller == 0 || (st.controller_server.work == false && st.remote_server.work == false))
+        if(SmartTherm.myboiler.IknowMycontroller == 0 || (!st.controller_server.work && !st.remote_server.work))
 
             // Set the message show for the Alert time
         builder.setMessage(str);
@@ -195,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
         });
 */
         // Set the Negative button with No name Lambda OnClickListener method is use of DialogInterface interface.
-        builder.setNegativeButton("Понятно", (DialogInterface.OnClickListener) (dialog, which) -> {
+        builder.setNegativeButton("Понятно", (dialog, which) -> {
             // If user click no then dialog box is canceled.
             dialog.cancel();
         });
@@ -283,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
 
                         if(SmartTherm.needSavesetup > 0)
                             WriteSetup();
-                        if( st.needRestartSetup > 0)
+                        if( SmartTherm.needRestartSetup > 0)
                            setup(0);
                     } //endof run()
                 });  //endof hdlr.post()
