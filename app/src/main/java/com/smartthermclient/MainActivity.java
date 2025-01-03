@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
             WriteSetup();
         }
 
-        bt_connect_sts  = this.findViewById(R.id.ConnectStatus_button);
+        bt_connect_sts  = (MaterialButton) this.findViewById(R.id.ConnectStatus_button);
 
 
         StartInfoMAThread();
