@@ -5,7 +5,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -126,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     public int ReadSetup() {
-        int rc, nb = 0;
         FileInputStream fin = null;
         try {
             fin = openFileInput(SmartTherm.SetupFile);
