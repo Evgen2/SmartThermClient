@@ -1,6 +1,7 @@
 package com.smartthermclient;
 
 import static com.smartthermclient.MainActivity.st;
+import static com.smartthermclient.SmartTherm.*;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,8 +40,8 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
     Context SetA_context;
     MaterialButton bt_addController;
     TableLayout tl;
-    int[] NeditControllerIds = new int[SmartTherm.MaxBoilers];
-    int[] NtestCheckBoxes = new int[SmartTherm.MaxBoilers];
+    int[] NeditControllerIds = new int[MaxBoilers];
+    int[] NtestCheckBoxes = new int[MaxBoilers];
 
     static int SetA_ThreadRun = 0;
     private  static Handler hdlr; // = new Handler();
@@ -303,6 +304,7 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
 
     public  void StartSetController_fragment(@Nullable View v)
     {   int id, id0, i, is;
+        String str;
         assert v != null;
         id = v.getId();
         is = id0 = 0;
@@ -318,7 +320,23 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
 
         Bundle bundle = new Bundle();
         bundle.putInt("type",1);
-        bundle.putString("title", "Параметры контроллера");
+        str = "Параметры ";
+        if(boiler[id0].IknowMycontroller== 0 )
+        {    str += "контроллера";
+        } else {
+           switch(boiler[id0].SmartType)
+            {   case 0:
+                str += "SmartTherm 32";
+                    break;
+                case 1:
+                    str += "SmartTherm";
+                    break;
+                case 2:
+                    str += "SmartTherm 2";
+                    break;
+            }
+        }
+        bundle.putString("title", str);
         bundle.putInt("indBoiler", id0);
 
 // set Fragmentclass Arguments
@@ -334,7 +352,7 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
     {
         int id, n, is, i, rc,  id0, oldcurrent;
 
-        oldcurrent = SmartTherm.indCurrentBoiler;
+        oldcurrent = indCurrentBoiler;
 
         if(iswork == 0) {
             iswork = 1;
@@ -344,7 +362,7 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
                 if (id == NtestCheckBoxes[i]) {
                     is = 1;
                     id0 = i;
-                    SmartTherm.indCurrentBoiler = i;
+                    indCurrentBoiler = i;
                     break;
                 }
             }
@@ -363,7 +381,7 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
             } else {
                 MaterialCheckBox cb;
                 id0 = (id0 +1) % st.Nboilers;
-                SmartTherm.indCurrentBoiler = id0;
+                indCurrentBoiler = id0;
                 for (i = 0; i < st.Nboilers; i++) {
                     cb = (MaterialCheckBox) findViewById(NtestCheckBoxes[i]);
                     if (i == id0) {
@@ -377,7 +395,7 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
         }
         iswork = 0;
         need_update_Controller_table = true;
-        if(SmartTherm.indCurrentBoiler != oldcurrent)
+        if(indCurrentBoiler != oldcurrent)
             isChange |= 0x02;
     }
 
@@ -404,7 +422,7 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
 
 
         if((isChange & 0x02) == 0x02) {
-            SmartTherm.needRestartSetup = 1;
+            needRestartSetup = 1;
         }
         Intent intent = new Intent(this, MainActivity.class);
         startActivity((intent));
@@ -416,7 +434,7 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
         int iv;
         String str;
 
-        st.myboiler = st.boiler[SmartTherm.indCurrentBoiler];
+        st.myboiler = st.boiler[indCurrentBoiler];
 
         iv = Integer.parseInt(editSetupControllerPort_ef.getText().toString());
         st.ControllerPort = iv;
@@ -436,10 +454,10 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
 //        st.DebugLogFname = (editSetupDebugLogFname_ef.getText().toString());
 
         if((isChange & 0x01) == 0x01)
-            SmartTherm.needSavesetup = 1;
+            needSavesetup = 1;
         if((isChange & 0x02) == 0x02) {
-            SmartTherm.needRestartSetup = 1;
-            SmartTherm.needSavesetup = 1;
+            needRestartSetup = 1;
+            needSavesetup = 1;
         }
 
         Intent intent = new Intent(this, MainActivity.class);

@@ -167,6 +167,9 @@ public class SmartTherm {
             boiler[Nboilers].Name = str;
             str = String.format("127.0.0.%d", Nboilers+1 );
             boiler[Nboilers].ControllerIpAddress = str;
+            boiler[Nboilers].IknowMycontroller = 0;
+            boiler[Nboilers].MacAddr[0] = boiler[Nboilers].MacAddr[1] = boiler[Nboilers].MacAddr[2] =
+            boiler[Nboilers].MacAddr[3] = boiler[Nboilers].MacAddr[4] = boiler[Nboilers].MacAddr[5] = 0;
 
             Nboilers++;
         }
@@ -180,13 +183,17 @@ public class SmartTherm {
             if(indCurrentBoiler >= Nboilers)
                 indCurrentBoiler = Nboilers-1;
         } else {
+            SmartBoiler tmp = boiler[ind];
             for (int i= ind; i < Nboilers-1; i++)
                 boiler[i] =  boiler[i+1];
             Nboilers--;
+            boiler[Nboilers] = tmp;
             if(indCurrentBoiler == ind)
                 indCurrentBoiler = ind;
-            else if(indCurrentBoiler > ind)
-                indCurrentBoiler = ind -1;
+            else if(indCurrentBoiler > ind) {
+                if(ind == 0) indCurrentBoiler = 0;
+                else indCurrentBoiler = ind - 1;
+            }
         }
         myboiler = boiler[indCurrentBoiler];
     }
@@ -225,6 +232,13 @@ public class SmartTherm {
             e.printStackTrace();
             return 2;
         }
+        for (int i=0; i < Nboilers; i++)
+        {   if(boiler[i].SmartType > 0)
+            boiler[i].Relay_present = true;
+        }
+        if(myboiler.SmartType > 0)
+            myboiler.Relay_present = true;
+
         config_change_event = 1;
         return 0;
     }
@@ -310,6 +324,16 @@ public class SmartTherm {
             boiler[3].Name = value;
         } else if (name.equals("ControllerName")) {
             myboiler.Name = value;
+        } else if (name.equals("ControllerType0")) {
+            boiler[0].SmartType = Integer.parseInt(value);
+        } else if (name.equals("ControllerType1")) {
+            boiler[1].SmartType = Integer.parseInt(value);
+        } else if (name.equals("ControllerType2")) {
+            boiler[2].SmartType = Integer.parseInt(value);
+        } else if (name.equals("ControllerType3")) {
+            boiler[3].SmartType = Integer.parseInt(value);
+        } else if (name.equals("ControllerType")) {
+            myboiler.SmartType = Integer.parseInt(value);
         } else if (name.equals("Use_remoteTCPserver0")) {
             v = Integer.parseInt(value);
             if( v == 1)   boiler[0].Use_remoteTCPserver = true;
@@ -370,6 +394,11 @@ public class SmartTherm {
                 fout.write(str.getBytes());
                 str = String.format(Locale.ROOT, "ControllerName%d=%s\n", i, boiler[i].Name);
                 fout.write(str.getBytes());
+                str = String.format(Locale.ROOT, "ControllerType%d=%d\n", i, boiler[i].SmartType);
+                fout.write(str.getBytes());
+                str = String.format(Locale.ROOT, "BoilerCode%d=%d\n", i, boiler[i].OTmemberCode);
+                fout.write(str.getBytes());
+
                 v = 0;
                 if(boiler[i].Use_remoteTCPserver) v = 1;
                 str = String.format(Locale.ROOT, "Use_remoteTCPserver%d=%d\n",i, v);
@@ -384,6 +413,10 @@ public class SmartTherm {
         str = String.format(Locale.ROOT, "ControllerIpAddress=%s\n", myboiler.ControllerIpAddress);
         fout.write(str.getBytes());
         str = String.format(Locale.ROOT, "ControllerName=%s\n",  myboiler.Name);
+        fout.write(str.getBytes());
+        str = String.format(Locale.ROOT, "ControllerType=%d\n",  myboiler.SmartType);
+        fout.write(str.getBytes());
+        str = String.format(Locale.ROOT, "BoilerCode=%d\n",  myboiler.OTmemberCode);
         fout.write(str.getBytes());
 
         v = 0;
@@ -408,6 +441,7 @@ public class SmartTherm {
     // периодический опрос контроллера
     int loop_net() {
         int rc;
+
         if(NeedSendControllerCmd2 != 0)
         {   NeedSendControllerCmd = NeedSendControllerCmd2;
             NeedSendControllerCmd2 = 0;
@@ -893,8 +927,8 @@ public class SmartTherm {
 
         ByteBuffer bb = ByteBuffer.allocate(6);
 
-        Msg1 ucmd = new Msg1();
-        Msg1 outcmd = new Msg1();
+            Msg1 ucmd = new Msg1();
+            Msg1 outcmd = new Msg1();
         dst = 0;
 
         if(mode == 0)
@@ -905,6 +939,7 @@ public class SmartTherm {
             bb.order(ByteOrder.LITTLE_ENDIAN);
             bb.putInt(myboiler.remote_server_ClientId);
             System.arraycopy(bb.array(), 0, ucmd.Buf, dst, 4);
+            bb.clear();
             dst += 4;
         }
 
@@ -913,7 +948,10 @@ public class SmartTherm {
             b_flags |= 0x01;
         if (myboiler.enable_HotWater_toSet)
             b_flags |= 0x02;
-
+        if(myboiler.Relay_present && myboiler.Relay_used )
+        {  if(SmartTherm.myboiler.Relay_sts_toSet)
+                b_flags |= 0x1000;
+        }
 
         bb.order(ByteOrder.LITTLE_ENDIAN);
         bb.putShort(b_flags);
@@ -938,6 +976,7 @@ public class SmartTherm {
         System.arraycopy(bb.array(), 0, ucmd.Buf, dst, 4); //TdhwSet
         bb.clear();
         dst += 4;
+//myboiler.Relay_sts_toSet
 
         if(mode == 0)
             rc = controller_server.SendAndConfirm(ucmd, dst, outcmd, 0); // ACMD_SET_STATE_C dst=14
@@ -1053,10 +1092,19 @@ public class SmartTherm {
                 myboiler.PID_used = btmp;
             }
         }
+        if(myboiler.Relay_present) {
+            if ((b_flags & 0x4000) != 0) myboiler.Relay_used = true;
+            else myboiler.Relay_used = false;
+        }
 
         System.arraycopy(outcmd.Buf, 2, tmp, 0, 2);
-        itmp2 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
-        myboiler.stsOT = itmp2;
+        if(myboiler.SmartType == 2)
+        {   myboiler.stsOT = tmp[0];
+            myboiler.Slave_stsOT  = tmp[1];
+        } else {
+            itmp2 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
+            myboiler.stsOT = itmp2;
+        }
         long imp1;
         System.arraycopy(outcmd.Buf, 4, tmp, 0, 4);
         imp1 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
@@ -1103,9 +1151,17 @@ public class SmartTherm {
         x = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getFloat();
         myboiler.Pressure = x;
 
-        System.arraycopy(outcmd.Buf, 44, tmp, 0, 4);
-        itmp = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
-        myboiler.status_D18b20 = itmp;
+        System.arraycopy(outcmd.Buf, 44, tmp, 0, 2);
+        itmp2 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
+        if(myboiler.Relay_present)
+        {   if((itmp2 & 0x1000) == 0x1000) {
+                myboiler.Relay_sts = true;
+                itmp2 &= 0x0fff;
+            } else {
+                myboiler.Relay_sts = false;
+            }
+        }
+        myboiler.status_D18b20 = itmp2;
 
         System.arraycopy(outcmd.Buf, 48, tmp, 0, 4);
         x = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getFloat();
@@ -1145,7 +1201,10 @@ public class SmartTherm {
             myboiler.Tset_toSet = myboiler.Tset;
             myboiler.TdhwSet_toSet =  myboiler.TdhwSet;
             myboiler.TroomTarget_toSet = myboiler.TroomTarget;
+            if(myboiler.Relay_present && myboiler.Relay_used )
+                myboiler.Relay_sts_toSet = myboiler.Relay_sts;
             myboiler.ToSet_start = 0;
+
         }
 
     }
@@ -1163,7 +1222,7 @@ public class SmartTherm {
         Msg1 outcmd = new Msg1();
         ucmd.cmd = MCMD_GET_CAP;
 
-        rc = controller_server.SendAndConfirm(ucmd, 0, outcmd, 16);
+        rc = controller_server.SendAndConfirm_v(ucmd, 0, outcmd, 16, 20);
         if (rc == 0) {
             float x;
             System.arraycopy(outcmd.Buf, 0, tmpmac, 0, 6);
@@ -1172,8 +1231,14 @@ public class SmartTherm {
             b_flags = ByteBuffer.wrap(tmp2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
 
             System.arraycopy(outcmd.Buf, 8, tmp2, 0, 2);
-            itmp2 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
-            myboiler.stsOT = itmp2;
+            if(myboiler.SmartType == 2)
+            {   myboiler.stsOT = tmp2[0];
+                myboiler.Slave_stsOT  = tmp2[1];
+            } else {
+                itmp2 = ByteBuffer.wrap(tmp2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
+                myboiler.stsOT = itmp2;
+            }
+
             System.arraycopy(outcmd.Buf, 10, tmp, 0, 4);
             b_flags4 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
 
@@ -1205,6 +1270,10 @@ public class SmartTherm {
             else myboiler.PID_present = false;
             if ((b_flags4 & 0x800) != 0) myboiler.PID_used = true;
             else myboiler.PID_used = false;
+            if(myboiler.Relay_present) {
+                if ((b_flags4 & 0x4000) != 0) myboiler.Relay_used = true;
+                else myboiler.Relay_used = false;
+            }
 
             System.arraycopy(outcmd.Buf, 14, tmp2, 0, 2);
             b_flags = ByteBuffer.wrap(tmp2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
@@ -1216,6 +1285,22 @@ public class SmartTherm {
             if(myboiler.Use_remoteTCPserver != tmps) {
                 myboiler.Use_remoteTCPserver = tmps;
                 needSavesetup = 1;
+            }
+            if(outcmd.len == 20)
+            {   System.arraycopy(outcmd.Buf, 16, tmp2, 0, 2);
+                itmp2 = ByteBuffer.wrap(tmp2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
+                myboiler.SmartType = itmp2;
+                if(myboiler.SmartType > 0)
+                    myboiler.Relay_present = true;
+                if ((b_flags4 & 0x8000) != 0) myboiler.OT_slave_present = true;
+                else myboiler.OT_slave_present  = false;
+
+                System.arraycopy(outcmd.Buf, 18, tmp2, 0, 2);
+                itmp2 = ByteBuffer.wrap(tmp2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
+                myboiler.OTmemberCode = itmp2;
+
+            } else {
+                myboiler.Relay_present = false;
             }
         } else {
             System.out.printf("SendAndConfirm rc = %x\n", rc);

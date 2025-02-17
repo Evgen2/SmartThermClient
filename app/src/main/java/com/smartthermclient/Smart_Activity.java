@@ -46,6 +46,8 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
     private static final int TAB_SET_CH = 13;
     private static final int TAB_SET_ROOM_SETPOINT = 14;
     private static final int TAB_SET_DHW_SETPOINT = 15;
+    private static final int TAB_STATE_SLAVEOT = 16;
+    private static final int TAB_STATE_RELAY = 17;
 
 
     MaterialButton bt_connect_sts;
@@ -189,12 +191,17 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
     }
 
     void Build_Table()
-    {
+    {   String str;
         MainActivity.st.need_update_event = 1;
         AddTableHeadRow("Параметр", wPar, "Состояние", wState, "Настройка",  wEdit, tl);
         Nparams = 0;
         AddTableRow(Nparams+1, "Связь",wPar, "0", wState, tl,0);  idParams[Nparams++] = TAB_CONNECT;
         AddTableRow(Nparams+1, "OpenTherm",wPar, "0", wState, tl,0);  idParams[Nparams++] = TAB_STATEOT;
+        if(SmartTherm.myboiler.SmartType == 2 && SmartTherm.myboiler.OT_slave_present) {
+            AddTableRow(Nparams + 1, "OT панель", wPar, "0", wState, tl, 0);
+            idParams[Nparams++] = TAB_STATE_SLAVEOT;
+        }
+
         AddTableRow(Nparams+1, "Статус котла"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_STATEBOILER;
         AddTableRow(Nparams+1, "Уставка\nот контроллера"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_STATEBOILERMASTER;
         AddTableRow(Nparams+1, "Выход,°C"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_BOILERT;
@@ -211,7 +218,18 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         {   AddTableRow(Nparams+1, "Давление"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_PRESSURE;
         }
         if((SmartTherm.myboiler.status_D18b20 & 0x0303) > 0)
-        {   AddTableRow(Nparams+1, "T1 | T2,°C"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_T1_T2;
+        {   str = "";
+            if((SmartTherm.myboiler.status_D18b20 & 0x0003) > 0) {
+                if((SmartTherm.myboiler.status_D18b20 & 0x0300) > 0)
+                    str += "T1 | T2";
+                else
+                    str += "T1";
+            } else {
+                str += "T2";
+            }
+            str += ",°C";
+
+            AddTableRow(Nparams+1, str,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_T1_T2;
         }
         if(SmartTherm.myboiler.Toutside_present)
         {   AddTableRow(Nparams+1, "Text,°C"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_TOUTSIDE;
@@ -240,7 +258,12 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
 //            idSet_Tset_ef = NparamsIds[Nparams];
             idParams[Nparams++] = TAB_SET_DHW_SETPOINT;
         }
-
+        if(SmartTherm.myboiler.SmartType >= 1) {
+            if(SmartTherm.myboiler.Relay_present && SmartTherm.myboiler.Relay_used )
+            {   AddTableRow(Nparams + 1, "Реле", wPar, "0", wState, tl, 4);
+                idParams[Nparams++] = TAB_STATE_RELAY;
+            }
+        }
     }
 
     void AddTableHeadRow(String sPar, float wNumber, String sState, float wName, String sEdit, float wEdit, TableLayout _tl) {
@@ -370,6 +393,8 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
             bt.setOnClickListener(this::SA_Set_TroomTarget);
         else if(typ == 3)
             bt.setOnClickListener(this::SA_Set_TdhwSet_toSet);
+        else if(typ == 4)
+            bt.setOnClickListener(this::SA_Set_RelayState);
 
         tr.addView(bt,2);
 
@@ -411,6 +436,9 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
                     break;
                 case TAB_STATEOT: Update_StateOT(i);
                     break;
+                case TAB_STATE_SLAVEOT: Update_State_slaveOT(i);
+                    break;
+
                 case TAB_STATEBOILER: Update_StateBoiler(i);
                     break;
                 case TAB_STATEBOILERMASTER: Update_StateBoilerMaster(i);
@@ -450,6 +478,9 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
                     break;
                 case TAB_SET_DHW_SETPOINT:
                     Update_SetT_DHW(i);
+                    break;
+                case TAB_STATE_RELAY:
+                     Update_Relay_sts(i);
                     break;
             }
         }
@@ -569,13 +600,15 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         }
         return str0;
     }
+
     //TAB_STATEOT
     void Update_StateOT(int ind)
     {   int id;
         String str ="";
         id = NparamsIds[ind];
         TextView tv = findViewById(id);
-        if(MainActivity.st.myboiler.stsOT == -1)
+
+        if(SmartTherm.myboiler.stsOT == -1)
             str = "Не инициализирован";
         else if(MainActivity.st.myboiler.stsOT == -2)
             str = "нет данных";
@@ -589,6 +622,33 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
 
         tv.setText(str);
     }
+
+    //TAB_STATE_SLAVEOT
+    void Update_State_slaveOT(int ind)
+    {   int id;
+        String str ="";
+        id = NparamsIds[ind];
+        TextView tv = findViewById(id);
+
+        if(SmartTherm.myboiler.SmartType == 2)
+        {   if(SmartTherm.myboiler.Slave_stsOT == -1)
+                str += "Не инициализирован";
+            else if(SmartTherm.myboiler.Slave_stsOT == -2)
+                str += "нет данных";
+            else if(SmartTherm.myboiler.Slave_stsOT == 0)
+                str += "онлайн";
+            else if(SmartTherm.myboiler.Slave_stsOT == 2) {
+                Date now = new Date();
+//                long diffInMillies = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime());
+//                                str = String.format(Locale.ROOT, "Потеря связи с котлом\n%d секунд назад", (int)(diffInMillies / 1000.));
+                str += String.format(Locale.ROOT, "Потеря связи");
+
+            }
+        }
+
+        tv.setText(str);
+    }
+
     //TAB_STATEBOILER
     void Update_StateBoiler(int ind)
     {   int id, sts;
@@ -726,10 +786,12 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         String str ="";
         id = NparamsIds[ind];
         TextView tv = findViewById(id);
-        if((MainActivity.st.myboiler.status_D18b20 & 0x0003) > 0)
-            str += String.format(Locale.ROOT, "%.2f",MainActivity.st.myboiler.t1 );
-        str += " | ";
-        if((MainActivity.st.myboiler.status_D18b20 & 0x0300) > 0)
+        if((SmartTherm.myboiler.status_D18b20 & 0x0003) > 0) {
+            str += String.format(Locale.ROOT, "%.2f", MainActivity.st.myboiler.t1);
+            if((SmartTherm.myboiler.status_D18b20 & 0x0300) > 0)
+                str += " | ";
+        }
+        if((SmartTherm.myboiler.status_D18b20 & 0x0300) > 0)
             str += String.format(Locale.ROOT, "%.2f",MainActivity.st.myboiler.t2 );
         tv.setText(str);
     }
@@ -788,7 +850,29 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         id = NparamsIds[ind];
         TextView tv = findViewById(id);
 
-        str = String.format(Locale.ROOT, "%.2f",MainActivity.st.myboiler.TdhwSet_toSet);
+        str = String.format(Locale.ROOT, "%.2f", SmartTherm.myboiler.TdhwSet_toSet);
+        tv.setText(str);
+    }
+
+//    TAB_STATE_RELAY
+void Update_Relay_sts(int ind)
+    {   int id;
+        String str;
+
+        id = NparamsIds[ind];
+        TextView tv = findViewById(id);
+        if(SmartTherm.myboiler.Relay_sts)
+            str = "Вкл";
+        else
+            str = "вЫкл";
+        if(SmartTherm.myboiler.Relay_sts_toSet != SmartTherm.myboiler.Relay_sts)
+        {   str +=" –> ";
+            if(SmartTherm.myboiler.Relay_sts_toSet)
+                str += "Вкл";
+            else
+                str += "вЫкл";
+        }
+
         tv.setText(str);
     }
 
@@ -824,6 +908,25 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         tv.setText(str);
 
     }
+
+    public void SA_Set_RelayState(View v) {
+
+        if(SmartTherm.myboiler.Relay_sts == SmartTherm.myboiler.Relay_sts_toSet) {
+            if (SmartTherm.myboiler.Relay_sts_toSet)
+                SmartTherm.myboiler.Relay_sts_toSet = false;
+            else
+                SmartTherm.myboiler.Relay_sts_toSet = true;
+
+            if(MainActivity.st.sts_controller > 0)    MainActivity.st.NeedSendControllerCmd2 = 6;
+            else if (MainActivity.st.sts_server > 0)  MainActivity.st.NeedSendServerCmd = 6;
+            MainActivity.st.need_update_event++;
+        } else {
+            if(MainActivity.st.sts_controller > 0)    MainActivity.st.NeedSendControllerCmd2 = 6;
+            else if (MainActivity.st.sts_server > 0)  MainActivity.st.NeedSendServerCmd = 6;
+//            System.out.printf("**=!!!=** Relay NeedSendControllerCmd2 =%d\n", MainActivity.st.NeedSendControllerCmd2);
+        }
+    }
+
 
     public void SA_Set_Tset(View v) {
 /*  return ib onFinishSetTempDialog */

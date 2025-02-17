@@ -16,9 +16,11 @@ class Msg1 implements Serializable
     short cmd; //команда
     short ind; //параметр
     byte[] Buf;
+    int len;
     Msg1()
-    {  Buf = new byte[120];
+    {   Buf = new byte[120];
         cmd0 = cmd = ind = 0;
+        len = 0;
     }
 }
 
@@ -212,6 +214,13 @@ public class TCPconnection {
 
         return 0;
     }
+
+    int SendAndConfirm(Msg1 ucmd, int len, Msg1 outcmd, int lenout)
+    {
+        return SendAndConfirm_v(ucmd, len, outcmd, lenout, lenout);
+
+    }
+
     //послать буфер с подтверждением
     //rc = 0 Ok *
 //rc = 1 Timeout
@@ -223,7 +232,7 @@ public class TCPconnection {
 //rc = -1 CONNABORTED
 //rc = -2 timeout 2, connection closed (?)
 
-    int SendAndConfirm(Msg1 ucmd, int len, Msg1 outcmd, int lenout)
+    int SendAndConfirm_v(Msg1 ucmd, int len, Msg1 outcmd, int lenout, int lenoutmax)
     {   long t0,  t;
 
         byte[] bufin = new byte[len+6];
@@ -307,10 +316,15 @@ public class TCPconnection {
             //  }
             return 6;
         }
+        nba = nb - 6;
+        outcmd.len = nba;
 
-        if(nb !=  lenout + 6)
+        if(nba <  lenout || nba > lenoutmax)
             return 5;
-        System.arraycopy( bufout, 6,outcmd.Buf, 0, lenout);
+//        if(nb !=  lenout + 6)
+//            return 5;
+
+        System.arraycopy( bufout, 6,outcmd.Buf, 0, nba);
 //        System.out.println("сервер sent me " +  nb + "bytes");
         Last_work = new Date();
         work = true;

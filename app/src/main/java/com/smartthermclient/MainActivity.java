@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public  int WriteSetup()
-    { int rc, nb=0;
+    { int rc;
         FileOutputStream fout = null;
 
         try {
@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
         sca.close();
 
 //        long int buildDate = Date(BuildConfig.BUILD_TIME.toLong());
-        Long ts = 0L;
+
         try {
             PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
