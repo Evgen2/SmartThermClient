@@ -76,8 +76,7 @@ public class TCPconnection {
     rc = 3 failed to connect
 * */
     public int createTCPconnection(String _address, int serverPort, int _timeoutConnect) throws Exception
-    {   int rc;
-        int ierr = 0;
+    {   int ierr = 0;
         address = _address;
         String str;
         timeoutConnect =_timeoutConnect;
@@ -237,7 +236,7 @@ public class TCPconnection {
 
         byte[] bufin = new byte[len+6];
         byte[] bufout = new byte[1500];
-        int i, nb=0, nba;
+        int  nb=0, nba;
         ucmd.cmd0 =  0x22;
         indcmd = (short)((indcmd+1) & 0xffff);
         ucmd.ind =  indcmd;

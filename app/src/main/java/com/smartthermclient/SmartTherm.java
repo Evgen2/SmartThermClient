@@ -70,7 +70,6 @@ public class SmartTherm {
     int NeedSendControllerCmd = 1;
     int NeedSendControllerCmd2 = 0;
     int NeedSendServerCmd = 1;
-    int NeedSendServerCmd2 = 0;
     /***********************************************/
     static int needSavesetup;
     static int needRestartSetup;
@@ -188,9 +187,7 @@ public class SmartTherm {
                 boiler[i] =  boiler[i+1];
             Nboilers--;
             boiler[Nboilers] = tmp;
-            if(indCurrentBoiler == ind)
-                indCurrentBoiler = ind;
-            else if(indCurrentBoiler > ind) {
+            if(indCurrentBoiler > ind) {
                 if(ind == 0) indCurrentBoiler = 0;
                 else indCurrentBoiler = ind - 1;
             }
