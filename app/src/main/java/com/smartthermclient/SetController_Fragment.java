@@ -3,6 +3,7 @@ package com.smartthermclient;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 import static com.smartthermclient.MainActivity.st;
+import static com.smartthermclient.SmartUtils.validateStringIP;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ import android.widget.Toast;
 public class SetController_Fragment extends DialogFragment {
     TextView Info_title;
     TextView Info_MAC_txt;
+    TextView Info_RC_txt;
     EditText edit_IP_ef;
     EditText edit_Name_ef;
     int type;
@@ -102,13 +104,23 @@ public class SetController_Fragment extends DialogFragment {
         assert getArguments() != null;
         indBoiler = getArguments().getInt("indBoiler");
 
-        Info_MAC_txt = dialogView.findViewById(R.id.fr_sc_MAC);
         strtext = String.format("MAC %02x:%02x:%02x:%02x:%02x:%02x",
                 st.boiler[indBoiler].MacAddr[0], st.boiler[indBoiler].MacAddr[1], st.boiler[indBoiler].MacAddr[2],
                 st.boiler[indBoiler].MacAddr[3], st.boiler[indBoiler].MacAddr[4], st.boiler[indBoiler].MacAddr[5]);
 
         Info_MAC_txt = dialogView.findViewById(R.id.fr_sc_MAC);
         Info_MAC_txt.setText(strtext);
+
+        Info_RC_txt = dialogView.findViewById(R.id.fr_sc_RC);
+        if(st.boiler[indBoiler].IknowMycontroller == 1)
+        {   if(st.boiler[indBoiler].Use_remoteTCPserver)
+                    strtext = "Удаленное управление разрешено";
+            else
+                    strtext = "Удаленное управление запрещено";
+        } else {
+            strtext = "Контроллер не известен";
+        }
+        Info_RC_txt.setText(strtext);
 
         edit_IP_ef = dialogView.findViewById(R.id.fr_sc_IP_ef);
         edit_IP_ef.setText(st.boiler[indBoiler].ControllerIpAddress);
@@ -128,11 +140,12 @@ public class SetController_Fragment extends DialogFragment {
 
                 // Return input text back to activity through the implemented listener
                 str = edit_IP_ef.getText().toString();
-                if(!st.boiler[indBoiler].ControllerIpAddress.equals(str)) {
-                    st.boiler[indBoiler].ControllerIpAddress = str;
-                    change = 3;
+                if(validateStringIP(str)) {
+                    if (!st.boiler[indBoiler].ControllerIpAddress.equals(str)) {
+                        st.boiler[indBoiler].ControllerIpAddress = str;
+                        change = 3;
+                    }
                 }
-
                 str = edit_Name_ef.getText().toString();;
                 if(!st.boiler[indBoiler].Name.equals(str)) {
                     st.boiler[indBoiler].Name = str;

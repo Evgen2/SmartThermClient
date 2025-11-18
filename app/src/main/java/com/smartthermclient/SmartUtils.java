@@ -34,6 +34,10 @@ public class SmartUtils {
         int netmask;
         long ipTest;
         long ipMy = 0;
+        if(validateStringIP(TestIP) == false) {
+            return -1;
+        }
+
         try {
             ipMy = ipToLong(InetAddress.getByName(myIPaddr));
             ipTest = ipToLong(InetAddress.getByName(TestIP));
@@ -49,6 +53,11 @@ public class SmartUtils {
         return rc;
     }
 
+    public static boolean validateStringIP(final String ip) {
+        String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
+
+        return ip.matches(PATTERN);
+    }
     public void GetMyIPandMask()
     {   mask = 0;
         myIPaddr = getIPAddress(true);
@@ -88,6 +97,7 @@ public class SmartUtils {
         } catch (Exception ex) { } // for now eat exceptions
         return "";
     }
+
     int InvertColor(int color)
     { int r,g,b, a, newcolor, l, l1, dl, dl1,dl0;
         r = (color & 0xff0000)>>16;
@@ -112,7 +122,6 @@ public class SmartUtils {
         a = 0xff000000;
         newcolor = (r<<16)|(g<<8)|b|a;
         return newcolor;
-
     }
 
 }

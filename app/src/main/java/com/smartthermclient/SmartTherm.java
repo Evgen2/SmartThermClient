@@ -676,6 +676,17 @@ public class SmartTherm {
 
                 } else {
                     sts = 10 + rc; // 11/12 - createTCPconnection rc = 1/
+                    if(rc == 3)
+                    {
+                        sts_controller = 13;
+                        sl = 5000;
+                        try {
+                            Thread.sleep(sl);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    }
                     sts_controller = 10;
                     raz++;
 //                    System.out.printf("end run rc=%d\n", rc);
@@ -1652,6 +1663,14 @@ public class SmartTherm {
             } else if(sts_controller == 10) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myWaitConroller, null);
                 str = String.format(Locale.ROOT, "Пауза %d (%d %d)", raz, sts_controller, sts_server);
+            } else if(sts_controller == 13) {
+                bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myRedConroller, null);
+                str = String.format(Locale.ROOT, "Cоединение с %s не удалось %d (%d %d)", myboiler.ControllerIpAddress, raz, sts_controller, sts_server);
+                if(myboiler.IknowMycontroller == 0) {
+                    str += "\nконтроллер не известен";
+                } else if(myboiler.Use_remoteTCPserver == false) {
+                    str += "\nконтроллер не использует удаленный доступ";
+                }
             } else {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myRedConroller, null);
                 str = String.format(Locale.ROOT, "Ошибка связи с контроллером %d (%d %d)", raz, sts_controller, sts_server);
