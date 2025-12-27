@@ -28,6 +28,7 @@ import android.widget.Toast;
 public class SetController_Fragment extends DialogFragment {
     TextView Info_title;
     TextView Info_MAC_txt;
+    TextView Info_Version;
     TextView Info_RC_txt;
     EditText edit_IP_ef;
     EditText edit_Name_ef;
@@ -110,6 +111,15 @@ public class SetController_Fragment extends DialogFragment {
 
         Info_MAC_txt = dialogView.findViewById(R.id.fr_sc_MAC);
         Info_MAC_txt.setText(strtext);
+
+        Info_Version = dialogView.findViewById(R.id.fr_sc_Vers);
+        if(st.boiler[indBoiler].Vers == 0 && st.boiler[indBoiler].SubVers == 0 && st.boiler[indBoiler].SubVers1 == 0 && st.boiler[indBoiler].Revision == 0)
+            strtext = "";
+        else
+            strtext = String.format("vers %d.%d.%d.%d",
+                st.boiler[indBoiler].Vers, st.boiler[indBoiler].SubVers, st.boiler[indBoiler].SubVers1, st.boiler[indBoiler].Revision);
+        Info_Version.setText(strtext);
+
 
         Info_RC_txt = dialogView.findViewById(R.id.fr_sc_RC);
         if(st.boiler[indBoiler].IknowMycontroller == 1)

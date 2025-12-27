@@ -34,6 +34,18 @@
             android:layout_marginTop="20dp"
             android:text="MAC address"
             android:textSize="16sp" />
+        <TextView
+            android:id="@+id/fr_sc_Vers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Version"
+            android:textSize="16sp" />
+        <TextView
+            android:id="@+id/fr_sc_RC"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Remote control"
+            android:textSize="16sp" />
 
         <EditText
             android:id="@+id/fr_sc_IP_ef"

@@ -12,6 +12,10 @@ public class SmartBoiler {
     int remote_server_ClientId = -1;     /* Client Id */
     int remote_server_ClientId_k = 0;   /* Client Id key (todo future use) */
     boolean have_remote_server_ClientId = false;
+    int Vers = 0;
+    int SubVers = 0;
+    int SubVers1 = 0;
+    int Revision = 0;
 
     String ControllerIpAddress;
     String Name;

@@ -38,6 +38,7 @@ public class SmartTherm {
     int Vers = 0;
     int SubVers = 0;
     int SubVers1 = 0;
+    int Revision = 0;
     String IdentifyStr = "";
     String BuildDate = "";
     private static final int MCMD_GETTIME = 0x10; // читать/задать время RTC
@@ -169,6 +170,7 @@ public class SmartTherm {
             boiler[Nboilers].IknowMycontroller = 0;
             boiler[Nboilers].MacAddr[0] = boiler[Nboilers].MacAddr[1] = boiler[Nboilers].MacAddr[2] =
             boiler[Nboilers].MacAddr[3] = boiler[Nboilers].MacAddr[4] = boiler[Nboilers].MacAddr[5] = 0;
+            boiler[Nboilers].Vers = boiler[Nboilers].SubVers = boiler[Nboilers].SubVers1 = boiler[Nboilers].Revision = 0;
 
             Nboilers++;
         }
@@ -351,6 +353,66 @@ public class SmartTherm {
             v = Integer.parseInt(value);
             if( v == 1)   myboiler.Use_remoteTCPserver = true;
             else          myboiler.Use_remoteTCPserver = false;
+        } else if (name.equals("Vers_0")) {
+            v = Integer.parseInt(value);
+            boiler[0].Vers = v;
+        } else if (name.equals("Vers_1")) {
+            v = Integer.parseInt(value);
+            boiler[1].Vers = v;
+        } else if (name.equals("Vers_2")) {
+            v = Integer.parseInt(value);
+            boiler[2].Vers = v;
+        } else if (name.equals("Vers_3")) {
+            v = Integer.parseInt(value);
+            boiler[3].Vers = v;
+        } else if (name.equals("Vers")) {
+            v = Integer.parseInt(value);
+            myboiler.Vers = v;
+        } else if (name.equals("SubVers_0")) {
+            v = Integer.parseInt(value);
+            boiler[0].SubVers = v;
+        } else if (name.equals("SubVers_1")) {
+            v = Integer.parseInt(value);
+            boiler[1].SubVers = v;
+        } else if (name.equals("SubVers_2")) {
+            v = Integer.parseInt(value);
+            boiler[2].SubVers = v;
+        } else if (name.equals("SubVers_3")) {
+            v = Integer.parseInt(value);
+            boiler[3].SubVers = v;
+        } else if (name.equals("SubVers")) {
+            v = Integer.parseInt(value);
+            myboiler.SubVers = v;
+        } else if (name.equals("SubVers1_0")) {
+            v = Integer.parseInt(value);
+            boiler[0].SubVers1 = v;
+        } else if (name.equals("SubVers1_1")) {
+            v = Integer.parseInt(value);
+            boiler[1].SubVers1 = v;
+        } else if (name.equals("SubVers1_2")) {
+            v = Integer.parseInt(value);
+            boiler[2].SubVers1 = v;
+        } else if (name.equals("SubVers1_3")) {
+            v = Integer.parseInt(value);
+            boiler[3].SubVers1 = v;
+        } else if (name.equals("SubVers1")) {
+            v = Integer.parseInt(value);
+            myboiler.SubVers1 = v;
+        } else if (name.equals("Revision_0")) {
+            v = Integer.parseInt(value);
+            boiler[0].Revision = v;
+        } else if (name.equals("Revision_1")) {
+            v = Integer.parseInt(value);
+            boiler[1].Revision = v;
+        } else if (name.equals("Revision_2")) {
+            v = Integer.parseInt(value);
+            boiler[2].Revision = v;
+        } else if (name.equals("Revision_3")) {
+            v = Integer.parseInt(value);
+            boiler[3].Revision = v;
+        } else if (name.equals("Revision")) {
+            v = Integer.parseInt(value);
+            myboiler.Revision = v;
         } else if (name.equals("ControllerPort")) {
             ControllerPort = Integer.parseInt(value);
             known = 3;
@@ -400,6 +462,14 @@ public class SmartTherm {
                 if(boiler[i].Use_remoteTCPserver) v = 1;
                 str = String.format(Locale.ROOT, "Use_remoteTCPserver%d=%d\n",i, v);
                 fout.write(str.getBytes());
+                str = String.format(Locale.ROOT, "Vers_%d=%d\n",i, boiler[i].Vers);
+                fout.write(str.getBytes());
+                str = String.format(Locale.ROOT, "SubVers_%d=%d\n",i, boiler[i].SubVers);
+                fout.write(str.getBytes());
+                str = String.format(Locale.ROOT, "SubVers1_%d=%d\n",i, boiler[i].SubVers1);
+                fout.write(str.getBytes());
+                str = String.format(Locale.ROOT, "Revision_%d=%d\n",i, boiler[i].Revision);
+                fout.write(str.getBytes());
             }
         }
         str = String.format(Locale.ROOT, "IknowMycontroller=%d\n", myboiler.IknowMycontroller);
@@ -419,6 +489,15 @@ public class SmartTherm {
         v = 0;
         if(myboiler.Use_remoteTCPserver) v = 1;
         str = String.format(Locale.ROOT, "Use_remoteTCPserver=%d\n", v);
+        fout.write(str.getBytes());
+
+        str = String.format(Locale.ROOT, "Vers=%d\n", myboiler.Vers);
+        fout.write(str.getBytes());
+        str = String.format(Locale.ROOT, "SubVers=%d\n", myboiler.SubVers);
+        fout.write(str.getBytes());
+        str = String.format(Locale.ROOT, "SubVers1=%d\n", myboiler.SubVers1);
+        fout.write(str.getBytes());
+        str = String.format(Locale.ROOT, "Revision=%d\n", myboiler.Revision);
         fout.write(str.getBytes());
 
         str = String.format(Locale.ROOT, "ControllerPort=%d\n", ControllerPort);
@@ -594,7 +673,6 @@ public class SmartTherm {
                 }
                 if (rc == 0) {
                     infomsg = "Connecting";
-                    raz = 0;
                     need_reconnext = 0;
                     sts_controller = 2;
                     need_update_connect_info_event++;
@@ -618,7 +696,8 @@ public class SmartTherm {
 /************************/
                         rc = GetContollerCapabilities();
 /**===**/
-                        if (rc == 0 || rc == 1) {
+                        if (rc == 0) {
+                            raz = 0;
                             if (myboiler.IknowMycontroller == 0) {
                                 myboiler.IknowMycontroller = 1;
                                 needSavesetup = 1;
@@ -661,6 +740,17 @@ public class SmartTherm {
 /**===**/
                         } else {
                             sts = 10;
+                            raz++;
+                            if (raz == 2 || raz > 10) {
+                                if (myboiler.IknowMycontroller != 0 && myboiler.Use_remoteTCPserver) {
+                                    controller_server.CloseConnection();
+                                    sts_controller = 0;
+                                    useLocalNet = 0;
+                                    sts_server = 1;
+                                }
+                                if (raz > 100)
+                                    raz = 100;
+                            }
                         }
                     } else {
                         if (rc == 1)
@@ -1223,14 +1313,19 @@ public class SmartTherm {
         byte tmp[] = new byte[4];
         byte tmp2[] = new byte[2];
         byte tmpmac[] = new byte[6];
-        short b_flags, itmp2;
+        short b_flags, itmp2, cap;
 
         ByteBuffer bb = ByteBuffer.allocate(6);
         Msg1 ucmd = new Msg1();
         Msg1 outcmd = new Msg1();
         ucmd.cmd = MCMD_GET_CAP;
+        cap = 1;
+        bb.order(ByteOrder.LITTLE_ENDIAN);
+        bb.putShort(cap);
+        System.arraycopy (bb.array(), 0, ucmd.Buf, 0,2);
+        bb.clear();
 
-        rc = controller_server.SendAndConfirm_v(ucmd, 0, outcmd, 16, 20);
+        rc = controller_server.SendAndConfirm_v(ucmd, 2, outcmd, 16, 24);
         if (rc == 0) {
             float x;
             System.arraycopy(outcmd.Buf, 0, tmpmac, 0, 6);
@@ -1250,25 +1345,24 @@ public class SmartTherm {
             System.arraycopy(outcmd.Buf, 10, tmp, 0, 4);
             b_flags4 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
 
-            if (b_flags < 1)
-                return 1;
+            if (b_flags != 0) {
+                //if ((b_flags & 0x01) != 0) myboiler.enable_CentralHeating = true;
+                //todo
 
-            if ((b_flags & 0x01) != 0) myboiler.enable_CentralHeating = true;
-            //todo
+                if ((b_flags4 & 0x01) != 0) myboiler.HotWater_present = true;
+                else myboiler.HotWater_present = false;
+                if ((b_flags4 & 0x02) != 0) myboiler.CH2_present = true;
+                else myboiler.CH2_present = false;
+                if ((b_flags4 & 0x04) != 0) myboiler.RetT_present = true;
+                else myboiler.RetT_present = false;
 
-            if ((b_flags4 & 0x01) != 0) myboiler.HotWater_present = true;
-            else myboiler.HotWater_present = false;
-            if ((b_flags4 & 0x02) != 0) myboiler.CH2_present = true;
-            else myboiler.CH2_present = false;
-            if ((b_flags4 & 0x04) != 0) myboiler.RetT_present = true;
-            else myboiler.RetT_present = false;
-
-            if ((b_flags4 & 0x08) != 0) myboiler.Toutside_present = true;
-            else myboiler.Toutside_present = false;
-            if ((b_flags4 & 0x10) != 0) myboiler.Pressure_present = true;
-            else myboiler.Pressure_present = false;
-            if ((b_flags4 & 0x2000) != 0) myboiler.DhwT_present = true;
-            else myboiler.DhwT_present = false;
+                if ((b_flags4 & 0x08) != 0) myboiler.Toutside_present = true;
+                else myboiler.Toutside_present = false;
+                if ((b_flags4 & 0x10) != 0) myboiler.Pressure_present = true;
+                else myboiler.Pressure_present = false;
+                if ((b_flags4 & 0x2000) != 0) myboiler.DhwT_present = true;
+                else myboiler.DhwT_present = false;
+            }
 
             if ((b_flags4 & 0x100) != 0) myboiler.MQTT_present = true;
             else myboiler.MQTT_present = false;
@@ -1278,10 +1372,6 @@ public class SmartTherm {
             else myboiler.PID_present = false;
             if ((b_flags4 & 0x800) != 0) myboiler.PID_used = true;
             else myboiler.PID_used = false;
-            if(myboiler.Relay_present) {
-                if ((b_flags4 & 0x4000) != 0) myboiler.Relay_used = true;
-                else myboiler.Relay_used = false;
-            }
 
             System.arraycopy(outcmd.Buf, 14, tmp2, 0, 2);
             b_flags = ByteBuffer.wrap(tmp2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
@@ -1294,19 +1384,41 @@ public class SmartTherm {
                 myboiler.Use_remoteTCPserver = tmps;
                 needSavesetup = 1;
             }
-            if(outcmd.len == 20)
+            if(outcmd.len >= 20)
             {   System.arraycopy(outcmd.Buf, 16, tmp2, 0, 2);
                 itmp2 = ByteBuffer.wrap(tmp2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
                 myboiler.SmartType = itmp2;
                 if(myboiler.SmartType > 0)
                     myboiler.Relay_present = true;
+
+                if(myboiler.Relay_present) {
+                    if ((b_flags4 & 0x4000) != 0) myboiler.Relay_used = true;
+                    else myboiler.Relay_used = false;
+                }
                 if ((b_flags4 & 0x8000) != 0) myboiler.OT_slave_present = true;
                 else myboiler.OT_slave_present  = false;
 
                 System.arraycopy(outcmd.Buf, 18, tmp2, 0, 2);
                 itmp2 = ByteBuffer.wrap(tmp2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
                 myboiler.OTmemberCode = itmp2;
-
+                if(outcmd.len >= 24)
+                {   if(myboiler.Vers != outcmd.Buf[20])
+                    {   myboiler.Vers = outcmd.Buf[20];
+                        needSavesetup = 1;
+                    }
+                    if(myboiler.SubVers != outcmd.Buf[21])
+                    {   myboiler.SubVers = outcmd.Buf[21];
+                        needSavesetup = 1;
+                    }
+                    if(myboiler.SubVers1 != outcmd.Buf[22])
+                    {   myboiler.SubVers1 = outcmd.Buf[22];
+                        needSavesetup = 1;
+                    }
+                    if(myboiler.Revision != outcmd.Buf[23])
+                    {   myboiler.Revision = outcmd.Buf[23];
+                        needSavesetup = 1;
+                    }
+                }
             } else {
                 myboiler.Relay_present = false;
             }

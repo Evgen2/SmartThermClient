@@ -226,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
                 versionCode = (int) packageInfo.getLongVersionCode();
             }
             versionName = packageInfo.versionName;
+            st.Revision = packageInfo.baseRevisionCode;
 //            ts = packageInfo.firstInstallTime;
 //            ts = packageInfo.lastUpdateTime;
             // Now, you can use versionCode and versionName as needed.
