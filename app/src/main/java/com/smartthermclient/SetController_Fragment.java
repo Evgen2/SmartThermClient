@@ -27,11 +27,13 @@ import android.widget.Toast;
  */
 public class SetController_Fragment extends DialogFragment {
     TextView Info_title;
+    TextView Info_Code_txt;
     TextView Info_MAC_txt;
     TextView Info_Version;
     TextView Info_RC_txt;
     EditText edit_IP_ef;
     EditText edit_Name_ef;
+    EditText edit_Model_ef;
     int type;
     int indBoiler=0;
 
@@ -105,6 +107,10 @@ public class SetController_Fragment extends DialogFragment {
         assert getArguments() != null;
         indBoiler = getArguments().getInt("indBoiler");
 
+        strtext = "Code " + st.boiler[indBoiler].GetOTmemberCodeName();
+        Info_Code_txt = dialogView.findViewById(R.id.fr_sc_Code);
+        Info_Code_txt.setText(strtext);
+
         strtext = String.format("MAC %02x:%02x:%02x:%02x:%02x:%02x",
                 st.boiler[indBoiler].MacAddr[0], st.boiler[indBoiler].MacAddr[1], st.boiler[indBoiler].MacAddr[2],
                 st.boiler[indBoiler].MacAddr[3], st.boiler[indBoiler].MacAddr[4], st.boiler[indBoiler].MacAddr[5]);
@@ -138,6 +144,9 @@ public class SetController_Fragment extends DialogFragment {
         edit_Name_ef = dialogView.findViewById(R.id.fr_sc_Name_ef);
         edit_Name_ef.setText(st.boiler[indBoiler].Name);
 
+        edit_Model_ef = dialogView.findViewById(R.id.fr_sc_Model_ef);
+        edit_Model_ef.setText(st.boiler[indBoiler].Model);
+
 
         // "Got it" button
         Button buttonPos = (Button) dialogView.findViewById(R.id.fr_sc_pos_button);
@@ -156,9 +165,15 @@ public class SetController_Fragment extends DialogFragment {
                         change = 3;
                     }
                 }
-                str = edit_Name_ef.getText().toString();;
+                str = edit_Name_ef.getText().toString();
                 if(!st.boiler[indBoiler].Name.equals(str)) {
                     st.boiler[indBoiler].Name = str;
+                    change |= 0x01;
+                }
+
+                str = edit_Model_ef.getText().toString();
+                if(!st.boiler[indBoiler].Model.equals(str)) {
+                    st.boiler[indBoiler].Model = str;
                     change |= 0x01;
                 }
 

@@ -635,14 +635,15 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
                 str += "Не инициализирован";
             else if(SmartTherm.myboiler.Slave_stsOT == -2)
                 str += "нет данных";
-            else if(SmartTherm.myboiler.Slave_stsOT == 0)
-                str += "онлайн";
-            else if(SmartTherm.myboiler.Slave_stsOT == 2) {
-                Date now = new Date();
-//                long diffInMillies = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime());
-//                                str = String.format(Locale.ROOT, "Потеря связи с котлом\n%d секунд назад", (int)(diffInMillies / 1000.));
-                str += String.format(Locale.ROOT, "Потеря связи");
-
+            else
+            {   if((SmartTherm.myboiler.Slave_stsOT & 0x06)  == 0x04)
+                {   str += "управляет панель";
+                } else {
+                    str += "управляет контроллер";
+                }
+                if((SmartTherm.myboiler.Slave_stsOT & 0x02)  == 0x02)
+                {  str += "\nПотеря связи";
+                }
             }
         }
 

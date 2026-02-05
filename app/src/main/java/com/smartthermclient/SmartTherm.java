@@ -1,6 +1,7 @@
 package com.smartthermclient;
 
 import static android.graphics.PorterDuff.Mode.SRC;
+import static com.smartthermclient.SmartUtils.validateStringIP;
 import static java.time.Instant.ofEpochSecond;
 
 import android.content.Context;
@@ -34,13 +35,6 @@ import java.util.TimeZone;
 public class SmartTherm {
     private static final int IDENTIFY_TYPE = 0x0100;
     private static final int IDENTIFY_CODE = 0x0200;
-    int versionCode = 0x0000;
-    int Vers = 0;
-    int SubVers = 0;
-    int SubVers1 = 0;
-    int Revision = 0;
-    String IdentifyStr = "";
-    String BuildDate = "";
     private static final int MCMD_GETTIME = 0x10; // читать/задать время RTC
     private static final int MCMD_SETTIME = 0x11; // читать/задать время RTC
     private static final int MCMD_SET_TCPSERVER = 0x22; // задать TCP сервер, порт и время обновления информации
@@ -55,10 +49,20 @@ public class SmartTherm {
     private static final int ACMD_SET_STATE_S = 0x53; //  applcation set controller state via server (applcation send server)
     private static final int SCMD_SET_STATE_C = 0x54; // server set controller state (server send controller)
 
-
     private static final int MCMD_IDENTIFY = 0x80;
     private static final int MCMD_INTRODUCESELF = 0x81; // applcation send to server selfinfo  (applcation send to server)
+
     final static String SetupFile = "SmartThermClient_settings";
+    private static final String DefaultServerName = "server.smarttherm.ru";
+
+    int versionCode = 0x0000;
+    int Vers = 0;
+    int SubVers = 0;
+    int SubVers1 = 0;
+    int Revision = 0;
+    String IdentifyStr = "";
+    String BuildDate = "";
+
     public int config_change_event = 0;
     int sts;
     int sts_controller = 0;
@@ -114,7 +118,6 @@ public class SmartTherm {
     Date Last_server_ST_work;//время последнего принятого пакета сервером от контроллера (см также time_of_server_connect)
     Date server_start_work;  //время запуска сервера
 
-
     /************************/
     boolean TsetChanged; // Tset контроллера изменился
     boolean NeedSetControllerData; // Нужно передать данные контроллеру
@@ -129,7 +132,7 @@ public class SmartTherm {
     SmartTherm() {
         sts = 0;
         ServerIpAddress = "default";
-        Server_default_IpAddress ="80.237.33.121";
+        Server_default_IpAddress = "0.0.0.0";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             time_of_controller_connect = time_of_server_connect = time_of_last_message = ofEpochSecond(0);
         }
@@ -243,6 +246,126 @@ public class SmartTherm {
     }
 
     int ParsePar(String name, String value) {
+        int i, is, nc, v;
+        String[] Keywords0 ={"Nboilers", "indCurrentBoiler", "ControllerPort","ServerIpAddress", "ServerPort", "Server_default_IpAddress" };
+        String[] Keywords = {"IknowMycontroller", "ControllerMac",  "ControllerIpAddress", "ControllerName", "ControllerType", "BoilerCode", "BoilerModel",
+                        "Use_remoteTCPserver", "Vers_", "SubVers_", "SubVers1_", "Revision_", "Slave_present" };
+
+        is = 0;
+        for(i=0; i< Keywords0.length; i++)
+        {   if (name.equals(Keywords0[i]))
+            {  is = 1;
+                switch (i)
+                {   case 0: //Nboilers
+                        Nboilers = Integer.parseInt(value);
+                        break;
+                    case 1: //indCurrentBoiler
+                        indCurrentBoiler = Integer.parseInt(value);
+                        if(indCurrentBoiler < 0) indCurrentBoiler = 0;
+                        else if (indCurrentBoiler >= MaxBoilers)
+                            indCurrentBoiler = MaxBoilers -1;
+                        myboiler = boiler[indCurrentBoiler];
+                        break;
+                    case 2: // ControllerPort
+                        ControllerPort = Integer.parseInt(value);
+                        break;
+                    case 3: // ServerIpAddress
+                        ServerIpAddress = value;
+                        break;
+                    case 4: // ServerPort
+                        ServerPort = Integer.parseInt(value);
+                        break;
+                    case 5: // Server_default_IpAddress
+                        Server_default_IpAddress = value;
+                        break;
+                }
+                return 0;
+            }
+        }
+
+        for(i=0; i< Keywords.length; i++)
+        {
+            if (name.contains(Keywords[i])) {
+                int kl = Keywords[i].length();
+                int nl = name.length();
+                char ch;
+                nc = -1;
+                if(nl > kl && nl < kl+3) {
+                    ch = name.charAt(kl);
+                    if(ch == '_')
+                    {   if(nl > kl+1)
+                            ch = name.charAt(kl + 1);
+                    }
+                    nc = ch - '0';
+                }
+                if(nc < 0 || nc >= 4)
+                    continue;
+                switch(i)
+                {   case 0: // IknowMycontroller
+                        boiler[nc].IknowMycontroller = Integer.parseInt(value);
+                        break;
+                    case 1: // ControllerMac
+                        String[] addrs = value.split(":");
+                        if (addrs.length == myboiler.MacAddr.length) {
+                            for (int ii = 0; ii < addrs.length; ii++) {
+                                boiler[nc].MacAddr[ii] = Integer.decode("0x" + addrs[ii]).byteValue();
+                            }
+                        }
+                        break;
+
+                    case 2: // ControllerIpAddress
+                        boiler[nc].ControllerIpAddress = value;
+                        break;
+                    case 3: // ControllerName
+                        boiler[nc].Name = value;
+                        break;
+
+                    case 4: // ControllerType
+                        boiler[nc].SmartType = Integer.parseInt(value);
+                        break;
+
+                    case 5: //BoilerCode
+                        boiler[nc].OTmemberCode = (short) Integer.parseInt(value);
+                        break;
+                    case 6: //BoilerModel
+                        boiler[nc].Model = value;
+                        break;
+                    case 7: // Use_remoteTCPserver
+                        v = Integer.parseInt(value);
+                        if( v == 1)   boiler[nc].Use_remoteTCPserver = true;
+                        else          boiler[nc].Use_remoteTCPserver = false;
+                        break;
+                    case 8: // Vers_
+                        v = Integer.parseInt(value);
+                        boiler[nc].Vers = v;
+                        break;
+                    case 9: // SubVers_
+                        v = Integer.parseInt(value);
+                        boiler[nc].SubVers = v;
+                        break;
+                    case 10: // SubVers1_
+                        v = Integer.parseInt(value);
+                        boiler[nc].SubVers1 = v;
+                        break;
+                    case 11: // Revision_
+                        v = Integer.parseInt(value);
+                        boiler[nc].Revision = v;
+                        break;
+                    case 12: // Slave_present
+                        v = Integer.parseInt(value);
+                        if( v == 1)   boiler[nc].OT_slave_present = true;
+                        else          boiler[nc].OT_slave_present = false;
+                        break;
+                }
+                return 0;
+
+            }
+        }
+        return 1;
+    }
+
+    /*
+    int ParsePar0(String name, String value) {
         int known = 0, v;
         if (name.equals("ControllerMac")) {
             String[] addrs = value.split(":");
@@ -380,39 +503,6 @@ public class SmartTherm {
         } else if (name.equals("SubVers_3")) {
             v = Integer.parseInt(value);
             boiler[3].SubVers = v;
-        } else if (name.equals("SubVers")) {
-            v = Integer.parseInt(value);
-            myboiler.SubVers = v;
-        } else if (name.equals("SubVers1_0")) {
-            v = Integer.parseInt(value);
-            boiler[0].SubVers1 = v;
-        } else if (name.equals("SubVers1_1")) {
-            v = Integer.parseInt(value);
-            boiler[1].SubVers1 = v;
-        } else if (name.equals("SubVers1_2")) {
-            v = Integer.parseInt(value);
-            boiler[2].SubVers1 = v;
-        } else if (name.equals("SubVers1_3")) {
-            v = Integer.parseInt(value);
-            boiler[3].SubVers1 = v;
-        } else if (name.equals("SubVers1")) {
-            v = Integer.parseInt(value);
-            myboiler.SubVers1 = v;
-        } else if (name.equals("Revision_0")) {
-            v = Integer.parseInt(value);
-            boiler[0].Revision = v;
-        } else if (name.equals("Revision_1")) {
-            v = Integer.parseInt(value);
-            boiler[1].Revision = v;
-        } else if (name.equals("Revision_2")) {
-            v = Integer.parseInt(value);
-            boiler[2].Revision = v;
-        } else if (name.equals("Revision_3")) {
-            v = Integer.parseInt(value);
-            boiler[3].Revision = v;
-        } else if (name.equals("Revision")) {
-            v = Integer.parseInt(value);
-            myboiler.Revision = v;
         } else if (name.equals("ControllerPort")) {
             ControllerPort = Integer.parseInt(value);
             known = 3;
@@ -422,16 +512,10 @@ public class SmartTherm {
         } else if (name.equals("ServerPort")) {
             ServerPort = Integer.parseInt(value);
             known = 5;
-//        } else if (name.equals("controllerUseDebugLog")) {
-//            UseDebugLog = Boolean.valueOf(value);
-//            known = 6;
-//        } else if (name.equals("controllerDebugLogFile")) {
-//            DebugLogFname = value;
-//            known = 7;
         }
         return known;
     }
-
+*/
     @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
     int Write(FileOutputStream fout) throws IOException {
         String str;
@@ -455,6 +539,14 @@ public class SmartTherm {
                 fout.write(str.getBytes());
                 str = String.format(Locale.ROOT, "ControllerType%d=%d\n", i, boiler[i].SmartType);
                 fout.write(str.getBytes());
+                if(boiler[i].SmartType == 2)
+                {   v = 0;
+                    if(boiler[i].OT_slave_present) v = 1;
+                    str = String.format(Locale.ROOT, "Slave_present%d=%d\n", i, v);
+                    fout.write(str.getBytes());
+                }
+                str = String.format(Locale.ROOT, "BoilerModel%d=%s\n", i, boiler[i].Model);
+                fout.write(str.getBytes());
                 str = String.format(Locale.ROOT, "BoilerCode%d=%d\n", i, boiler[i].OTmemberCode);
                 fout.write(str.getBytes());
 
@@ -472,6 +564,7 @@ public class SmartTherm {
                 fout.write(str.getBytes());
             }
         }
+/*
         str = String.format(Locale.ROOT, "IknowMycontroller=%d\n", myboiler.IknowMycontroller);
         fout.write(str.getBytes());
 //        str = String.format(Locale.ROOT, "%s.ControllerMac=%02x:%02x:%02x:%02x:%02x:%02x\n", className, MacAddr[0],  MacAddr[1],MacAddr[2],MacAddr[3],MacAddr[4],MacAddr[5]);
@@ -499,17 +592,18 @@ public class SmartTherm {
         fout.write(str.getBytes());
         str = String.format(Locale.ROOT, "Revision=%d\n", myboiler.Revision);
         fout.write(str.getBytes());
+*/
 
         str = String.format(Locale.ROOT, "ControllerPort=%d\n", ControllerPort);
         fout.write(str.getBytes());
         str = String.format(Locale.ROOT, "ServerIpAddress=%s\n", ServerIpAddress);
         fout.write(str.getBytes());
+
+        str = String.format(Locale.ROOT, "Server_default_IpAddress=%s\n", Server_default_IpAddress);
+        fout.write(str.getBytes());
+
         str = String.format(Locale.ROOT, "ServerPort=%d\n", ServerPort);
         fout.write(str.getBytes());
-//        str = String.format(Locale.ROOT, "controllerUseDebugLog=%b\n", UseDebugLog);
-//        fout.write(str.getBytes());
-//        str = String.format(Locale.ROOT, "controllerDebugLogFile=%s\n", DebugLogFname);
-//        fout.write(str.getBytes());
         needSavesetup = 0;
         return 0;
     }
@@ -612,7 +706,6 @@ public class SmartTherm {
             sts_controller = 0;
             sts_server =  1;
         }
-
         return 0;
     }
 
@@ -651,6 +744,9 @@ public class SmartTherm {
             int sl;
 //            System.out.println("The UserThread  thread is running");
             ControllerThreadRun = 1;
+
+            CheckDefault_IpAddress();
+
             controller_server = new TCPconnection();
             while (true) {
                 if (ControllerThreadRunNeedExit)
@@ -767,15 +863,13 @@ public class SmartTherm {
                 } else {
                     sts = 10 + rc; // 11/12 - createTCPconnection rc = 1/
                     if(rc == 3)
-                    {
-                        sts_controller = 13;
+                    {   sts_controller = 13;
                         sl = 5000;
                         try {
                             Thread.sleep(sl);
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
-
                     }
                     sts_controller = 10;
                     raz++;
@@ -835,8 +929,9 @@ public class SmartTherm {
             int sl;
             String str;
             String ServerAddress;
-            RemoteServerThreadRun = 1;
 
+            RemoteServerThreadRun = 1;
+            CheckDefault_IpAddress();
 //          System.out.println("The RemoteServerThread   thread is running");
             remote_server = new TCPconnection();
             while (true) {
@@ -982,7 +1077,6 @@ public class SmartTherm {
                         if (raz > 100)
                             raz = 100;
                     }
-
 
                     try {
                         Thread.sleep(sl);
@@ -1167,12 +1261,6 @@ public class SmartTherm {
         else myboiler.Toutside_present = false;
         if ((b_flags & 0x80) != 0) myboiler.Pressure_present = true;
         else myboiler.Pressure_present = false;
-        if ((b_flags & 0x1000) != 0) myboiler.RetT_present = true;
-        else myboiler.RetT_present = false;
-
-        if ((b_flags & 0x2000) != 0) myboiler.DhwT_present = true;
-        else myboiler.DhwT_present = false;
-
 
         if ((b_flags & 0x100) != 0) myboiler.MQTT_present = true;
         else myboiler.MQTT_present = false;
@@ -1190,6 +1278,13 @@ public class SmartTherm {
                 myboiler.PID_used = btmp;
             }
         }
+
+        if ((b_flags & 0x1000) != 0) myboiler.RetT_present = true;
+        else myboiler.RetT_present = false;
+
+        if ((b_flags & 0x2000) != 0) myboiler.DhwT_present = true;
+        else myboiler.DhwT_present = false;
+
         if(myboiler.Relay_present) {
             if ((b_flags & 0x4000) != 0) myboiler.Relay_used = true;
             else myboiler.Relay_used = false;
@@ -1199,6 +1294,9 @@ public class SmartTherm {
         if(myboiler.SmartType == 2)
         {   myboiler.stsOT = tmp[0];
             myboiler.Slave_stsOT  = tmp[1];
+            if ((b_flags & 0x8000) != 0) myboiler.OT_slave_present = true;
+            else myboiler.OT_slave_present  = false;
+
         } else {
             itmp2 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
             myboiler.stsOT = itmp2;
@@ -1438,24 +1536,23 @@ public class SmartTherm {
         Msg1 outcmd = new Msg1();
         ucmd.cmd = MCMD_SET_TCPSERVER;
         String ServerAddress;
+        InetAddress ipAddress= null;
 
         if(ServerIpAddress.equals("default"))
             ServerAddress = Server_default_IpAddress;
         else
             ServerAddress = ServerIpAddress;
-
         use = 1;
-        try {
-            InetAddress ipAddress = InetAddress.getByName(ServerAddress); // создаем объект который отображает вышеописанный IP-адрес.
-        } catch (UnknownHostException uhe) {
-            uhe.printStackTrace();
-//            errmsg = uhe.toString();
-//            ierr = 1;
-//            return ierr;
-            use = 0;
+        if(!validateStringIP(ServerAddress)) {
+            try {
+                ipAddress = InetAddress.getByName(ServerAddress); // создаем объект который отображает вышеописанный IP-адрес.
+                System.out.printf("ipAddress %s\n", ipAddress.toString());
+                ServerAddress = ipAddress.getHostAddress();
+            } catch (UnknownHostException uhe) {
+                uhe.printStackTrace();
+                use = 0;
+            }
         }
-
-
 //статус 4 int
 //IP 20 char
 //report time 4 int
@@ -1466,6 +1563,7 @@ public class SmartTherm {
         bb.putInt(use);
         System.arraycopy(bb.array(), 0, ucmd.Buf, 0, 4);
         bb.clear();
+        assert ServerAddress != null;
         byte[] b = ServerAddress.getBytes();
         l = b.length;
         if (l > 20) l = 20;
@@ -1872,6 +1970,19 @@ public class SmartTherm {
         else
             LocalHomeNetsts = 0;
 
+    }
+
+    void CheckDefault_IpAddress() {
+//        if (ServerIpAddress.equals("default") && Server_default_IpAddress.equals("0.0.0.0"))
+        if (ServerIpAddress.equals("default"))
+        {   InetAddress ipAddress = null;
+            try {
+                ipAddress = InetAddress.getByName(DefaultServerName);
+                Server_default_IpAddress = ipAddress.getHostAddress();
+            } catch (UnknownHostException uhe) {
+                uhe.printStackTrace();
+            }
+        }
     }
 
 }

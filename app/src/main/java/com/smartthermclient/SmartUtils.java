@@ -123,5 +123,16 @@ public class SmartUtils {
         newcolor = (r<<16)|(g<<8)|b|a;
         return newcolor;
     }
-
+    static class OTmember
+    {   int id;
+        String name;
+        OTmember(int _id, String _name)
+        { id = _id;
+          name = _name;
+        }
+    };
+    // Вспомогательный метод с коротким именем
+    public static OTmember m(int id, String name) {
+        return new OTmember(id, name);
+    }
 }

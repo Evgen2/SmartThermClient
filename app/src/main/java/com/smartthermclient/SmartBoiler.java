@@ -1,5 +1,7 @@
 package com.smartthermclient;
 
+import static com.smartthermclient.SmartUtils.m;
+
 import java.util.Date;
 
 //класс с параметрами/функциями только котла
@@ -19,6 +21,7 @@ public class SmartBoiler {
 
     String ControllerIpAddress;
     String Name;
+    String Model; //Бренд и модель котла
     String FirmwareInfo;
     boolean Use_remoteTCPserver = false; //
     Date Last_OT_work;//время последнего принятого пакета OpenTherm (см также time_of_server_connect)
@@ -78,13 +81,14 @@ public class SmartBoiler {
     SmartBoiler() {
         used = 0;
         Name = "Not used";
+        Model = "";
         SmartType = 0;
         IknowMycontroller = 0;
         MacAddr[0] = MacAddr[1] = MacAddr[2] = MacAddr[3] = MacAddr[4] = MacAddr[5] = 0;
         ControllerIpAddress = "127.0.0.1";
         stsOT = -2;
         Slave_stsOT = -2;
-        OTmemberCode = 0;
+        OTmemberCode = -1;
         BoilerStatus = 0;
 
         enable_CentralHeating = enable_HotWater = enable_Cooling = enable_CentralHeating2 = false;
@@ -114,5 +118,43 @@ public class SmartBoiler {
         Relay_present = Relay_used = Relay_sts = false;
         Relay_sts_toSet = false;
         OT_slave_present = false;
+    }
+    static final SmartUtils.OTmember[] OTidnames =
+    {       m(1,  "Baxi Fourtech/Luna 3"),
+            m(2,  "AWB/Brink/Viessmann"),
+            m(4,  "Baxi Slim"),
+            m(5,  "Itho Daalderop"),
+            m(6,  "IDEAL"),
+            m(8,  "Buderus/Bosch/Hoval"),
+            m(9,  "Ferrolli"),
+            m(11,  "Remeha/De Dietrich"),
+            m(13, "Lamborghini"), // sb f24
+            m(16, "Unical"),
+            m(24, "Vaillant/Bulex"),
+            m(27, "Baxi Eco4s/Luna Duo-Tec P67=0"), //Baxi Nuvola B40
+            m(29, "Itho Daalderop"),
+            m(33, "Viessmann"),
+            m(41, "Italtherm/Radiant"),
+            m(56,	"Baxi Luna Duo-Tec P67=2"),
+            m(125, "Kotitonttu"), // Toivo Т24 OK with OpenTherm
+            m(131, "Bosch/Nefit converter"), // bosch / nefit EMS to OpenTherm converter
+            m(148, "Navien"),
+            m(173, "Intergas"),
+            m(247, "Baxi Ampera"),
+            m(248, "Zota"), // Lux-X, mk-s plus
+            m(252, "Zota mk-s") //Zota mk-s (версия 23 года)
+    };
+    String GetOTmemberCodeName()
+    {   int i;
+        for(i=0; i< OTidnames.length; i++)
+        {   if(OTidnames[i].id == OTmemberCode)
+            {   return OTidnames[i].name;
+            }
+        }
+        if(OTmemberCode == -1)
+            return "нет данных";
+        if(OTmemberCode == 0)
+            return "custom device";
+        return "";
     }
 }

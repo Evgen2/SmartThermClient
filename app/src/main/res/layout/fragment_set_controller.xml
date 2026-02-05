@@ -28,10 +28,16 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/fr_sc_MAC"
+            android:id="@+id/fr_sc_Code"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:text="BoilerCode"
+            android:textSize="16sp" />
+        <TextView
+            android:id="@+id/fr_sc_MAC"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="MAC address"
             android:textSize="16sp" />
         <TextView
@@ -58,6 +64,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Название" />
+        <EditText
+            android:id="@+id/fr_sc_Model_ef"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Бренд и модель котла" />
 
     </LinearLayout>
 
