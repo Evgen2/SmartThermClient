@@ -113,7 +113,6 @@ public class SmartTherm {
     public int ActivityesFlag; // флаги активностей. Каждая при onResume() устанавливет флаг, в OnStop сбрасывает
     boolean Theads_Sleep = false;
     /*****************************************************************/
-    final String className = "SmartTherm";
     String infomsg;
     Date Last_server_ST_work;//время последнего принятого пакета сервером от контроллера (см также time_of_server_connect)
     Date server_start_work;  //время запуска сервера
@@ -245,17 +244,15 @@ public class SmartTherm {
         return 0;
     }
 
-    int ParsePar(String name, String value) {
-        int i, is, nc, v;
+    void ParsePar(String name, String value) {
+        int i,  nc, v;
         String[] Keywords0 ={"Nboilers", "indCurrentBoiler", "ControllerPort","ServerIpAddress", "ServerPort", "Server_default_IpAddress" };
         String[] Keywords = {"IknowMycontroller", "ControllerMac",  "ControllerIpAddress", "ControllerName", "ControllerType", "BoilerCode", "BoilerModel",
                         "Use_remoteTCPserver", "Vers_", "SubVers_", "SubVers1_", "Revision_", "Slave_present" };
 
-        is = 0;
         for(i=0; i< Keywords0.length; i++)
         {   if (name.equals(Keywords0[i]))
-            {  is = 1;
-                switch (i)
+            {   switch (i)
                 {   case 0: //Nboilers
                         Nboilers = Integer.parseInt(value);
                         break;
@@ -279,7 +276,6 @@ public class SmartTherm {
                         Server_default_IpAddress = value;
                         break;
                 }
-                return 0;
             }
         }
 
@@ -332,8 +328,7 @@ public class SmartTherm {
                         break;
                     case 7: // Use_remoteTCPserver
                         v = Integer.parseInt(value);
-                        if( v == 1)   boiler[nc].Use_remoteTCPserver = true;
-                        else          boiler[nc].Use_remoteTCPserver = false;
+                        boiler[nc].Use_remoteTCPserver = v == 1;
                         break;
                     case 8: // Vers_
                         v = Integer.parseInt(value);
@@ -357,165 +352,11 @@ public class SmartTherm {
                         else          boiler[nc].OT_slave_present = false;
                         break;
                 }
-                return 0;
 
             }
         }
-        return 1;
     }
 
-    /*
-    int ParsePar0(String name, String value) {
-        int known = 0, v;
-        if (name.equals("ControllerMac")) {
-            String[] addrs = value.split(":");
-            {
-                if (addrs.length == myboiler.MacAddr.length) {
-                    for (int i = 0; i < addrs.length; i++) {
-                        myboiler.MacAddr[i] = Integer.decode("0x" + addrs[i]).byteValue();
-                    }
-                    known = 1;
-                }
-            }
-        } else if (name.equals("ControllerMac0")) {
-            String[] addrs = value.split(":");
-            if (addrs.length == myboiler.MacAddr.length) {
-                for (int i = 0; i < addrs.length; i++) {
-                    boiler[0].MacAddr[i] = Integer.decode("0x" + addrs[i]).byteValue();
-                }
-            }
-        } else if (name.equals("ControllerMac1")) {
-            String[] addrs = value.split(":");
-            if (addrs.length == myboiler.MacAddr.length) {
-                for (int i = 0; i < addrs.length; i++) {
-                    boiler[1].MacAddr[i] = Integer.decode("0x" + addrs[i]).byteValue();
-                }
-            }
-        } else if (name.equals("ControllerMac2")) {
-            String[] addrs = value.split(":");
-            if (addrs.length == myboiler.MacAddr.length) {
-                for (int i = 0; i < addrs.length; i++) {
-                    boiler[2].MacAddr[i] = Integer.decode("0x" + addrs[i]).byteValue();
-                }
-            }
-        } else if (name.equals("ControllerMac3")) {
-            String[] addrs = value.split(":");
-            if (addrs.length == myboiler.MacAddr.length) {
-                for (int i = 0; i < addrs.length; i++) {
-                    boiler[3].MacAddr[i] = Integer.decode("0x" + addrs[i]).byteValue();
-                }
-            }
-        } else if (name.equals("Nboilers")) {
-            Nboilers = Integer.parseInt(value);
-        } else if (name.equals("indCurrentBoiler")) {
-            indCurrentBoiler = Integer.parseInt(value);
-            if(indCurrentBoiler < 0) indCurrentBoiler = 0;
-            else if (indCurrentBoiler >= MaxBoilers)
-                indCurrentBoiler = MaxBoilers -1;
-            myboiler = boiler[indCurrentBoiler];
-
-        } else if (name.equals("IknowMycontroller0")) {
-            boiler[0].IknowMycontroller = Integer.parseInt(value);
-        } else if (name.equals("IknowMycontroller1")) {
-            boiler[1].IknowMycontroller = Integer.parseInt(value);
-        } else if (name.equals("IknowMycontroller2")) {
-            boiler[2].IknowMycontroller = Integer.parseInt(value);
-        } else if (name.equals("IknowMycontroller3")) {
-            boiler[3].IknowMycontroller = Integer.parseInt(value);
-        } else if (name.equals("IknowMycontroller")) {
-            myboiler.IknowMycontroller = Integer.parseInt(value);
-            known = 0;
-        } else if (name.equals("ControllerIpAddress0")) {
-            boiler[0].ControllerIpAddress = value;
-        } else if (name.equals("ControllerIpAddress1")) {
-            boiler[1].ControllerIpAddress = value;
-        } else if (name.equals("ControllerIpAddress2")) {
-            boiler[2].ControllerIpAddress = value;
-        } else if (name.equals("ControllerIpAddress3")) {
-            boiler[3].ControllerIpAddress = value;
-        } else if (name.equals("ControllerIpAddress")) {
-            myboiler.ControllerIpAddress = value;
-            known = 2;
-        } else if (name.equals("ControllerName0")) {
-            boiler[0].Name = value;
-        } else if (name.equals("ControllerName1")) {
-            boiler[1].Name = value;
-        } else if (name.equals("ControllerName2")) {
-            boiler[2].Name = value;
-        } else if (name.equals("ControllerName3")) {
-            boiler[3].Name = value;
-        } else if (name.equals("ControllerName")) {
-            myboiler.Name = value;
-        } else if (name.equals("ControllerType0")) {
-            boiler[0].SmartType = Integer.parseInt(value);
-        } else if (name.equals("ControllerType1")) {
-            boiler[1].SmartType = Integer.parseInt(value);
-        } else if (name.equals("ControllerType2")) {
-            boiler[2].SmartType = Integer.parseInt(value);
-        } else if (name.equals("ControllerType3")) {
-            boiler[3].SmartType = Integer.parseInt(value);
-        } else if (name.equals("ControllerType")) {
-            myboiler.SmartType = Integer.parseInt(value);
-        } else if (name.equals("Use_remoteTCPserver0")) {
-            v = Integer.parseInt(value);
-            if( v == 1)   boiler[0].Use_remoteTCPserver = true;
-            else          boiler[0].Use_remoteTCPserver = false;
-        } else if (name.equals("Use_remoteTCPserver1")) {
-            v = Integer.parseInt(value);
-            if( v == 1)   boiler[1].Use_remoteTCPserver = true;
-            else          boiler[1].Use_remoteTCPserver = false;
-        } else if (name.equals("Use_remoteTCPserver2")) {
-            v = Integer.parseInt(value);
-            if( v == 1)   boiler[2].Use_remoteTCPserver = true;
-            else          boiler[2].Use_remoteTCPserver = false;
-        } else if (name.equals("Use_remoteTCPserver3")) {
-            v = Integer.parseInt(value);
-            if( v == 1)   boiler[3].Use_remoteTCPserver = true;
-            else          boiler[3].Use_remoteTCPserver = false;
-        } else if (name.equals("Use_remoteTCPserver")) {
-            v = Integer.parseInt(value);
-            if( v == 1)   myboiler.Use_remoteTCPserver = true;
-            else          myboiler.Use_remoteTCPserver = false;
-        } else if (name.equals("Vers_0")) {
-            v = Integer.parseInt(value);
-            boiler[0].Vers = v;
-        } else if (name.equals("Vers_1")) {
-            v = Integer.parseInt(value);
-            boiler[1].Vers = v;
-        } else if (name.equals("Vers_2")) {
-            v = Integer.parseInt(value);
-            boiler[2].Vers = v;
-        } else if (name.equals("Vers_3")) {
-            v = Integer.parseInt(value);
-            boiler[3].Vers = v;
-        } else if (name.equals("Vers")) {
-            v = Integer.parseInt(value);
-            myboiler.Vers = v;
-        } else if (name.equals("SubVers_0")) {
-            v = Integer.parseInt(value);
-            boiler[0].SubVers = v;
-        } else if (name.equals("SubVers_1")) {
-            v = Integer.parseInt(value);
-            boiler[1].SubVers = v;
-        } else if (name.equals("SubVers_2")) {
-            v = Integer.parseInt(value);
-            boiler[2].SubVers = v;
-        } else if (name.equals("SubVers_3")) {
-            v = Integer.parseInt(value);
-            boiler[3].SubVers = v;
-        } else if (name.equals("ControllerPort")) {
-            ControllerPort = Integer.parseInt(value);
-            known = 3;
-        } else if (name.equals("ServerIpAddress")) {
-            ServerIpAddress = value;
-            known = 4;
-        } else if (name.equals("ServerPort")) {
-            ServerPort = Integer.parseInt(value);
-            known = 5;
-        }
-        return known;
-    }
-*/
     @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
     int Write(FileOutputStream fout) throws IOException {
         String str;
@@ -526,7 +367,7 @@ public class SmartTherm {
         fout.write(str.getBytes());
         str = String.format(Locale.ROOT, "indCurrentBoiler=%d\n", indCurrentBoiler);
         fout.write(str.getBytes());
-        if(Nboilers > 1)
+        if(Nboilers > 0)
         {   for(i=0; i<Nboilers;i++)
             {
                 str = String.format(Locale.ROOT, "IknowMycontroller%d=%d\n", i, boiler[i].IknowMycontroller);
@@ -739,7 +580,7 @@ public class SmartTherm {
     class ControllerThread implements Runnable {
         public void run() {
             int rc;
-            int np = 0, raz = 0;
+            int raz = 0;
             int need_reconnext = 0;
             int sl;
 //            System.out.println("The UserThread  thread is running");
@@ -821,7 +662,6 @@ public class SmartTherm {
                                     need_reconnext = 1;
                                     break;
                                 }
-                                np++;
                                 sts = 4;
 //todo
 //                            str = String.format("Пакетов %d", np);
@@ -924,7 +764,7 @@ public class SmartTherm {
     class RemoteServerThread implements Runnable {
         public void run() {
             int rc, rc0;
-            int np = 0, np1 = 0, raz = 0;
+            int raz = 0;
             int need_reconnext = 0;
             int sl;
             String str;
@@ -1009,7 +849,7 @@ public class SmartTherm {
                             }
                             if (rc == 0) {
                                 NeedSendServerCmd = 1;
-                                np1 = 0;
+
                                 while (Theads_Sleep != true) {
                                     if (RemoteServerThreadRunNeedExit)
                                         break;
@@ -1021,8 +861,7 @@ public class SmartTherm {
                                         need_reconnext = 1;
                                         break;
                                     }
-                                    np++;
-                                    np1++;
+
                                     sts = 4;
                                     sl = server_user_online_report_period;
                                     if (sl < 2) sl = 2;
@@ -1114,7 +953,6 @@ public class SmartTherm {
 //ACMD_SET_STATE_S   mode 1
     int SetContollerState(int mode) {
         int rc, dst;
-        byte tmpmac[] = new byte[6];
         short b_flags;
 
         ByteBuffer bb = ByteBuffer.allocate(6);
@@ -1217,8 +1055,6 @@ public class SmartTherm {
 //аналогично MCMD_GET_OT_INFO плюс информация о времени последнего сеанса связи
     int GetContollerState_from_remote_server() {
         int rc;
-        byte tmpmac[] = new byte[6];
-        short b_lags, itmp2;
         ByteBuffer bb = ByteBuffer.allocate(4);
 //        ByteBuffer bb = ByteBuffer.allocate(6);
         Msg1 ucmd = new Msg1();
@@ -1407,7 +1243,7 @@ public class SmartTherm {
 
     //MCMD_GET_CAP
     int GetContollerCapabilities() {
-        int rc, itmp, b_flags4;
+        int rc,  b_flags4;
         byte tmp[] = new byte[4];
         byte tmp2[] = new byte[2];
         byte tmpmac[] = new byte[6];
@@ -1425,7 +1261,6 @@ public class SmartTherm {
 
         rc = controller_server.SendAndConfirm_v(ucmd, 2, outcmd, 16, 24);
         if (rc == 0) {
-            float x;
             System.arraycopy(outcmd.Buf, 0, tmpmac, 0, 6);
             System.arraycopy(tmpmac, 0, myboiler.MacAddr, 0, 6);
             System.arraycopy(outcmd.Buf, 6, tmp2, 0, 2);
@@ -1530,7 +1365,6 @@ public class SmartTherm {
     //MCMD_SET_TCPSERVER
     int SetContoller_Tcpserver() {
         int l, rc, use;
-        short b_flags, itmp2;
         ByteBuffer bb = ByteBuffer.allocate(20);
         Msg1 ucmd = new Msg1();
         Msg1 outcmd = new Msg1();
@@ -1580,16 +1414,14 @@ public class SmartTherm {
         bb.clear();
 
         rc = controller_server.SendAndConfirm(ucmd, 32, outcmd, 0);
-        if (rc == 0) {
-            float x;
-        }
+
         return rc;
     }
 
     //MCMD_GETTIME
     //return 0 Ok
     int GetTime(int sts) {
-        int rc, itmp;
+        int rc;
         byte tmp[] = new byte[4];
         byte tmp_t[] = new byte[8];
         short t_l;
@@ -1630,7 +1462,7 @@ public class SmartTherm {
             } else if (t_l == 8) { //esp8266
                 System.arraycopy(outcmd.Buf, 2, tmp_t, 0, 8);
                 t_sec = ByteBuffer.wrap(tmp_t).order(java.nio.ByteOrder.LITTLE_ENDIAN).getLong();
-                Date date = new Timestamp(t_sec * 1000);
+//                Date date = new Timestamp(t_sec * 1000);
 //               Instant instant = ofEpochSecond(t_sec);
 
 //                System.out.println(date);
@@ -1649,7 +1481,7 @@ public class SmartTherm {
         int rc, t, ms;
         long lms;
         ByteBuffer bb = ByteBuffer.allocate(4);
-        Instant it;
+
         Date now = new Date();
         lms = now.getTime();
         t = (int) (lms/1000);
@@ -1673,32 +1505,25 @@ public class SmartTherm {
 //        System.out.printf("controller_server.SendAndConfirm()\n");
 
         rc = controller_server.SendAndConfirm(ucmd, 8, outcmd, 0);
-        if (rc == 0) {
 
-        }
-//        System.out.printf("SetTime rc %d\n", rc);
         return rc;
     }
     /***************************************************/
 //MCMD_IDENTIFY
     int  Identify_server()
-    {   int rc, itmp, lname, ldate ;
-        short lp;
+    {   int rc;
         byte tmp[] = new byte[4];
         byte tmpmac[] = new byte[6];
         byte tmpdate[] = new byte[20];
 
-        ByteBuffer bb = ByteBuffer.allocate(4);
 
-        short b_flags, itmp2;
         Msg1 ucmd = new Msg1();
         Msg1 outcmd = new Msg1();
         ucmd.cmd = MCMD_IDENTIFY;
         rc =  remote_server.SendAndConfirm2(ucmd, 6, outcmd,126, 6, 1,0x12);
 //   System.out.printf("SendAndConfirm2  rc = %x\n", rc);
         if (rc == 0)
-        {    int idcode, idtype, idNumber;
-            short sl;
+        {   short sl;
             sl = (short) ((outcmd.Buf[0]& 0xff) | (outcmd.Buf[1]&0xff) << 8);
 
             System.arraycopy(outcmd.Buf, 2,tmp,0,4);
@@ -1733,7 +1558,7 @@ public class SmartTherm {
         int rc, lname, ldate ;
         short lp;
         byte tmp[] = new byte[4];
-        byte tmpmac[] = new byte[6];
+
         ByteBuffer bb = ByteBuffer.allocate(4);
 
         Msg1 ucmd = new Msg1();
@@ -1805,9 +1630,8 @@ public class SmartTherm {
 
     //ACMD_ASK_STS
     int Ask_RemoteServer_MyContoller() {
-        int rc, itmp, b_flags4;
+        int rc, b_flags4;
         byte tmp[] = new byte[4];
-        byte tmpmac[] = new byte[6];
 
         Msg1 ucmd = new Msg1();
         Msg1 outcmd = new Msg1();
@@ -1837,7 +1661,6 @@ public class SmartTherm {
     int info_sts_server = 0;
     public  void RedrawInfoButton(Context context,  MaterialButton bt_connect_sts)
     {
-        int rid=0;
         String str="";
         long diffInSec, t_mills;
         Date now = new Date();
@@ -1946,7 +1769,7 @@ public class SmartTherm {
     }
 
 //    public int ActivityesFlag; // флаги активностей. Каждая при onResume() устанавливет флаг, в OnStop сбрасывает
- //   boolean Theads_Sleep = false;
+//   boolean Theads_Sleep = false;
    public void SleepDispatcher(boolean flag, int id)
     {   if(flag)
             ActivityesFlag |= (1<<id);
