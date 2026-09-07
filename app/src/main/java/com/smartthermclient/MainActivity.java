@@ -8,6 +8,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     static int iswork = 0;
 //    TextView ConectStatus_txt;
     MaterialButton bt_connect_sts;
+    private ButtonCircle trafficLightCircle; // Наш новый класс
     Context SA_context;
 
     static public SmartTherm st = new SmartTherm();
@@ -56,8 +60,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         bt_connect_sts  =  this.findViewById(R.id.ConnectStatus_button);
-
-
+        trafficLightCircle = new ButtonCircle(bt_connect_sts);
+// Задаем начальный цвет (например, Красный)
+        trafficLightCircle.change_colorbutton(ButtonCircle.STATE_RED);
         StartInfoMAThread();
     }
 
@@ -279,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
                 hdlr.post(new Runnable() {
                     public void run() {
                         if(iswork > 0)
-                            st.RedrawInfoButton(SA_context, bt_connect_sts);
+                            st.RedrawInfoButton(SA_context, bt_connect_sts, trafficLightCircle);
 
                         if(SmartTherm.needSavesetup > 0)
                             WriteSetup();
@@ -308,5 +313,4 @@ public class MainActivity extends AppCompatActivity {
             ThreadRun = 0;
         }
     }
-
 }

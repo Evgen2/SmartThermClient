@@ -28,6 +28,8 @@
         android:minHeight="28dip"
         android:text="inf"
         android:textSize="12sp"
+        app:iconGravity="end"
+        app:iconPadding="8dp"
         app:layout_constraintBottom_toTopOf="@+id/SmartA_scrollView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

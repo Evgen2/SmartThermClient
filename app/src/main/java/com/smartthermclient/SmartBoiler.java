@@ -50,6 +50,8 @@ public class SmartBoiler {
     boolean Relay_sts;   //Relay state
     boolean Relay_sts_toSet;   //Relay state
     boolean OT_slave_present; //OT_slave  present and use
+    boolean OT_Slave_sts_Active;    //controller/slave active
+    boolean OT_Slave_sts_toSetActive;   //controller/slave active
 
     /******************/
 
@@ -118,6 +120,7 @@ public class SmartBoiler {
         Relay_present = Relay_used = Relay_sts = false;
         Relay_sts_toSet = false;
         OT_slave_present = false;
+        OT_Slave_sts_Active = OT_Slave_sts_toSetActive = false;
     }
     static final SmartUtils.OTmember[] OTidnames =
     {       m(1,  "Baxi Fourtech/Luna 3"),

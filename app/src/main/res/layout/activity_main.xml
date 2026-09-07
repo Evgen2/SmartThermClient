@@ -43,6 +43,8 @@
         android:minHeight="30dip"
         android:text="inf"
         android:textSize="12sp"
+        app:iconGravity="end"
+        app:iconPadding="8dp"
         app:layout_constraintBottom_toTopOf="@+id/RunSmartActivity"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"

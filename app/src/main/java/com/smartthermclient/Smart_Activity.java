@@ -49,8 +49,17 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
     private static final int TAB_STATE_SLAVEOT = 16;
     private static final int TAB_STATE_RELAY = 17;
 
+    private static final int BT_SET_NONE = 0;
+    private static final int BT_SET_CH = 1;
+    private static final int BT_SET_ROOM_SETPOINT = 2;
+    private static final int BT_SET_DHW_SETPOINT  = 3;
+    private static final int BT_SET_STATE_RELAY   = 4;
+    private static final int BT_SET_OT2_USE       = 5;
+
 
     MaterialButton bt_connect_sts;
+    private ButtonCircle trafficLightCircle; // Наш новый класс
+
     Context SA_context;
     TableLayout tl;
     float wPar, wState, wEdit;
@@ -106,6 +115,9 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         Button bt_tmp;
         bt_tmp = findViewById(R.id.SmartA_ConnectStatus_button);
         bt_connect_sts = (MaterialButton)bt_tmp;
+        trafficLightCircle = new ButtonCircle(bt_connect_sts);
+        trafficLightCircle.change_colorbutton(ButtonCircle.STATE_YELLOW);
+
         SA_context = getApplicationContext();
         tl = (TableLayout) findViewById(R.id.Table_SmartA);
         wPar = 0.5f;
@@ -138,7 +150,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
                         // Update the progress bar and display the current value in text view
                         hdlr.post(new Runnable() {
                             public void run() {
-                                MainActivity.st.RedrawInfoButton(SA_context, bt_connect_sts);
+                                MainActivity.st.RedrawInfoButton(SA_context, bt_connect_sts, trafficLightCircle);
                                 if(MainActivity.st.need_update_event > 0) {
                                     UpdateSmartThermTable();
                                     MainActivity.st.need_update_event = 0;
@@ -198,7 +210,10 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         AddTableRow(Nparams+1, "Связь",wPar, "0", wState, tl,0);  idParams[Nparams++] = TAB_CONNECT;
         AddTableRow(Nparams+1, "OpenTherm",wPar, "0", wState, tl,0);  idParams[Nparams++] = TAB_STATEOT;
         if(SmartTherm.myboiler.SmartType == 2 && SmartTherm.myboiler.OT_slave_present) {
-            AddTableRow(Nparams + 1, "OT панель", wPar, "0", wState, tl, 0);
+            if((SmartTherm.myboiler.Slave_stsOT < 0) || ((SmartTherm.myboiler.Slave_stsOT & 0x02) == 0x02))
+                AddTableRow(Nparams + 1, "OT2 панель", wPar, "0", wState, tl, BT_SET_NONE);
+            else
+                AddTableRow(Nparams + 1, "OT2 панель", wPar, "0", wState, tl, BT_SET_OT2_USE);
             idParams[Nparams++] = TAB_STATE_SLAVEOT;
         }
 
@@ -246,21 +261,21 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         }
 
         if(SmartTherm.myboiler.PID_used)
-        {   AddTableRow(Nparams+1, "Уставка температуры\nпомещения,°C"    ,wPar, String.format(Locale.ROOT, "%.1f",MainActivity.st.myboiler.TroomTarget_toSet), wState, tl,2);
+        {   AddTableRow(Nparams+1, "Уставка температуры\nпомещения,°C"    ,wPar, String.format(Locale.ROOT, "%.1f",MainActivity.st.myboiler.TroomTarget_toSet), wState, tl, BT_SET_ROOM_SETPOINT);
             idParams[Nparams++] = TAB_SET_ROOM_SETPOINT;
         } else {
-           AddTableRow(Nparams+1, "Уставка температуры\nтеплоносителя,°C",wPar, String.format(Locale.ROOT, "%.1f",MainActivity.st.myboiler.Tset_toSet),wState, tl,1);
+           AddTableRow(Nparams+1, "Уставка температуры\nтеплоносителя,°C",wPar, String.format(Locale.ROOT, "%.1f",MainActivity.st.myboiler.Tset_toSet),wState, tl, BT_SET_CH);
 //            idSet_Tset_ef = NparamsIds[Nparams];
             idParams[Nparams++] = TAB_SET_CH;
         }
         if(SmartTherm.myboiler.HotWater_present)
-        {   AddTableRow(Nparams+1, "Уставка температуры\nгорячей воды,°C",wPar, String.format(Locale.ROOT, "%.1f",MainActivity.st.myboiler.TdhwSet_toSet),wState, tl,3);
+        {   AddTableRow(Nparams+1, "Уставка температуры\nгорячей воды,°C",wPar, String.format(Locale.ROOT, "%.1f",MainActivity.st.myboiler.TdhwSet_toSet),wState, tl, BT_SET_DHW_SETPOINT);
 //            idSet_Tset_ef = NparamsIds[Nparams];
             idParams[Nparams++] = TAB_SET_DHW_SETPOINT;
         }
         if(SmartTherm.myboiler.SmartType >= 1) {
             if(SmartTherm.myboiler.Relay_present && SmartTherm.myboiler.Relay_used )
-            {   AddTableRow(Nparams + 1, "Реле", wPar, "0", wState, tl, 4);
+            {   AddTableRow(Nparams + 1, "Реле", wPar, "0", wState, tl, BT_SET_STATE_RELAY);
                 idParams[Nparams++] = TAB_STATE_RELAY;
             }
         }
@@ -387,14 +402,16 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         Nparams_0_Ids[ind - 1] = id;
         bt.setId(id);
 
-        if(typ == 1)
+        if(typ == BT_SET_CH)
             bt.setOnClickListener(this::SA_Set_Tset);
-        else if(typ == 2)
+        else if(typ == BT_SET_ROOM_SETPOINT)
             bt.setOnClickListener(this::SA_Set_TroomTarget);
-        else if(typ == 3)
+        else if(typ == BT_SET_DHW_SETPOINT)
             bt.setOnClickListener(this::SA_Set_TdhwSet_toSet);
-        else if(typ == 4)
+        else if(typ == BT_SET_STATE_RELAY)
             bt.setOnClickListener(this::SA_Set_RelayState);
+        else if(typ ==  BT_SET_OT2_USE)
+            bt.setOnClickListener(this::SA_Set_OT2State);
 
         tr.addView(bt,2);
 
@@ -510,6 +527,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         long diffInMillies, OT_work_time;
         long diffInMillies1;
         long diffInMillies2;
+        int warningstate = 0;
         String str ="todo";
         if(Nparams == 0)
             return;
@@ -528,11 +546,12 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         if(MainActivity.st.LastMessage_isfrom == -1)
         {
             str = "Нет связи";
-
+            warningstate = 1;
         } else if (MainActivity.st.LastMessage_isfrom == 0) { //0 - controller
             if(MainActivity.st.myboiler.stsOT <= -1 || OT_work_time == 0)
             {
                 str = String.format(Locale.ROOT, "котёл: н/д");
+                warningstate = 1;
 
             } else {
                 diffInMillies = Math.abs(now.getTime() - OT_work_time);
@@ -540,6 +559,8 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
 
                 diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.controller_server.Last_work.getTime());
                 str = String.format(Locale.ROOT, "котёл %s\nконтроллер %s", GetDayHourMinSecMc(diffInMillies), GetDayHourMinSecMc(diffInMillies1));
+                if(diffInMillies > 10000)
+                    warningstate = 1;
             }
 
         } else if (MainActivity.st.LastMessage_isfrom == 1) { //, 1 - remote server
@@ -550,11 +571,13 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
                 str += String.format(Locale.ROOT, "н/д\nконтроллер: н/д");
                 diffInMillies2 = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime());
                 str += "\nсервер " + GetDayHourMinSecMc(diffInMillies2);
+                warningstate = 1;
 
             } else {
                 if(MainActivity.st.myboiler.stsOT == -1 || OT_work_time == 0)
                 {
                     str += String.format(Locale.ROOT, "н/д");
+                    warningstate = 1;
 
                 } else {
                     diffInMillies = Math.abs(now.getTime() - OT_work_time);
@@ -566,6 +589,8 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
                     str += GetDayHourMinSecMc(diffInMillies) +
                             "\nконтроллер " + GetDayHourMinSecMc(diffInMillies1) +
                             "\nсервер " + GetDayHourMinSecMc(diffInMillies2);
+                    if(diffInMillies > 120000)
+                        warningstate = 1;
                 }
             }
 
@@ -582,6 +607,17 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         }
 */
         tv.setText(str);
+        if(warningstate > 0)
+        {
+// 1. Извлекаем адаптивные цвета предупреждения
+            int bgWarningColor = ResourcesCompat.getColor(SA_context.getResources(), R.color.warning_cell_bg, null);
+
+            int textWarningColor = ResourcesCompat.getColor(SA_context.getResources(), R.color.warning_cell_text, null);
+
+            // 2. Применяем к ячейке
+            tv.setBackgroundColor(bgWarningColor);
+            tv.setTextColor(textWarningColor);
+        }
         UpdateFlag--;
     }
 
@@ -632,17 +668,32 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
 
         if(SmartTherm.myboiler.SmartType == 2)
         {   if(SmartTherm.myboiler.Slave_stsOT == -1)
-                str += "Не инициализирован";
+                str += "Не инициализирована";
             else if(SmartTherm.myboiler.Slave_stsOT == -2)
                 str += "нет данных";
             else
-            {   if((SmartTherm.myboiler.Slave_stsOT & 0x06)  == 0x04)
+            {   if(SmartTherm.myboiler.OT_Slave_sts_Active )
                 {   str += "управляет панель";
                 } else {
                     str += "управляет контроллер";
                 }
+
+                if(SmartTherm.myboiler.OT_Slave_sts_toSetActive != SmartTherm.myboiler.OT_Slave_sts_Active)
+                {   str +=" –> ";
+                    if(SmartTherm.myboiler.OT_Slave_sts_toSetActive)
+                        str += "панель";
+                    else
+                        str += "контроллер";
+                }
+
                 if((SmartTherm.myboiler.Slave_stsOT & 0x02)  == 0x02)
-                {  str += "\nПотеря связи";
+                {   str += "\nПотеря связи";
+                    Date now = new Date();
+                    long diffInMillies, OT_work_time;
+                    OT_work_time = SmartTherm.myboiler.Last_slaveOT_work.getTime();
+                    diffInMillies = Math.abs(now.getTime() - OT_work_time);
+                    str += GetDayHourMinSecMc(diffInMillies);
+
                 }
             }
         }
@@ -928,7 +979,20 @@ void Update_Relay_sts(int ind)
         }
     }
 
+    public void SA_Set_OT2State(View v) {
+//todo
+        if(SmartTherm.myboiler.OT_slave_present) {
 
+            if(SmartTherm.myboiler.OT_Slave_sts_Active)
+                SmartTherm.myboiler.OT_Slave_sts_toSetActive = false;
+            else
+                SmartTherm.myboiler.OT_Slave_sts_toSetActive = true;
+            if(MainActivity.st.sts_controller > 0)    MainActivity.st.NeedSendControllerCmd2 = 6;
+            else if (MainActivity.st.sts_server > 0)  MainActivity.st.NeedSendServerCmd = 6;
+            MainActivity.st.need_update_event++;
+
+        }
+    }
     public void SA_Set_Tset(View v) {
 /*  return ib onFinishSetTempDialog */
 

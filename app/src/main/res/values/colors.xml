@@ -17,4 +17,6 @@
     <color name="myBlue">   #900000FF</color>
     <color name="myYellow"> #90FFFF00</color>
     <color name="CurrentSelect"> #FFF6F1F1</color>
+    <color name="warning_cell_bg">#FFF9C4</color>
+    <color name="warning_cell_text">#5D4037</color>
 </resources>

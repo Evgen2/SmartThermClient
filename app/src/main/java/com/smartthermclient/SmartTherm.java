@@ -67,6 +67,8 @@ public class SmartTherm {
     int sts;
     int sts_controller = 0;
     int sts_server = 0;
+    public int connection_state = 0;
+
     int np_server = 0; // число пакетов от сервера после коннекта
     //0 - init, 1 - connecting, 2 - Соединение установлено, 3 - Инициализация обмена,  4- обмен ok,
     // 11,12 - connecting error, 19-26 ошибки обмена, 30 - пауза
@@ -116,7 +118,6 @@ public class SmartTherm {
     String infomsg;
     Date Last_server_ST_work;//время последнего принятого пакета сервером от контроллера (см также time_of_server_connect)
     Date server_start_work;  //время запуска сервера
-
     /************************/
     boolean TsetChanged; // Tset контроллера изменился
     boolean NeedSetControllerData; // Нужно передать данные контроллеру
@@ -982,6 +983,10 @@ public class SmartTherm {
         {  if(SmartTherm.myboiler.Relay_sts_toSet)
                 b_flags |= 0x1000;
         }
+        if(myboiler.SmartType == 2)
+        {  if(SmartTherm.myboiler.OT_Slave_sts_toSetActive)
+                b_flags |= 0x2000;
+        }
 
         bb.order(ByteOrder.LITTLE_ENDIAN);
         bb.putShort(b_flags);
@@ -1035,8 +1040,8 @@ public class SmartTherm {
         bb.order(ByteOrder.LITTLE_ENDIAN);
         bb.putShort(itmp2);
         System.arraycopy(bb.array(), 0, ucmd.Buf, 4, 2);
-
-        rc = controller_server.SendAndConfirm(ucmd, 6, outcmd, 72);
+        rc = controller_server.SendAndConfirm_v(ucmd, 6, outcmd, 72, 76);
+//        rc = controller_server.SendAndConfirm(ucmd, 6, outcmd, 72);
         if (rc == 0) {
             FillSmartStsFromMsg(outcmd, 0);
 //            System.out.printf("BoilerStatus = %x ", myboiler.BoilerStatus);
@@ -1130,8 +1135,21 @@ public class SmartTherm {
         if(myboiler.SmartType == 2)
         {   myboiler.stsOT = tmp[0];
             myboiler.Slave_stsOT  = tmp[1];
+            if(myboiler.Slave_stsOT >= 0)
+            {   if((SmartTherm.myboiler.Slave_stsOT & 0x06)  == 0x04)
+                    myboiler.OT_Slave_sts_Active = true;
+                else
+                    myboiler.OT_Slave_sts_Active = false;
+            }
             if ((b_flags & 0x8000) != 0) myboiler.OT_slave_present = true;
             else myboiler.OT_slave_present  = false;
+
+            if(myboiler.OT_slave_present && outcmd.len >= 76)
+            {   long imp1;
+                System.arraycopy(outcmd.Buf, 76-4, tmp, 0, 4);
+                imp1 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
+                myboiler.Last_slaveOT_work = new Timestamp(imp1 * 1000);
+            }
 
         } else {
             itmp2 = ByteBuffer.wrap(tmp).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
@@ -1235,6 +1253,9 @@ public class SmartTherm {
             myboiler.TroomTarget_toSet = myboiler.TroomTarget;
             if(myboiler.Relay_present && myboiler.Relay_used )
                 myboiler.Relay_sts_toSet = myboiler.Relay_sts;
+
+            if(myboiler.SmartType == 2)
+                myboiler.OT_Slave_sts_toSetActive = myboiler.OT_Slave_sts_Active;
             myboiler.ToSet_start = 0;
 
         }
@@ -1659,12 +1680,14 @@ public class SmartTherm {
     static  int bcolor = 0;
     static long told_redraw =0;
     int info_sts_server = 0;
-    public  void RedrawInfoButton(Context context,  MaterialButton bt_connect_sts)
+    public  void RedrawInfoButton(Context context,  MaterialButton bt_connect_sts, ButtonCircle t_trafficLightCircle)
     {
         String str="";
         long diffInSec, t_mills;
+        long diffInSecOT, diffInSecController;
+        int state = 1; /* 1 red, 2 yellow, 3 green  */
         Date now = new Date();
-
+        int connection_state_new = connection_state;
         t_mills = System.currentTimeMillis();
         if(t_mills - told_redraw > 2000)
         {   told_redraw = t_mills;
@@ -1677,22 +1700,43 @@ public class SmartTherm {
         bt_connect_sts.setBackgroundTintMode(SRC);
 //        ConectStatus_txt.setBackgroundTintMode(SRC);
         if(sts_controller > 0) {
+            diffInSec = Math.abs(now.getTime() - MainActivity.st.controller_server.Last_work.getTime())/1000;
+            diffInSecOT = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime()) / 1000;
             if(sts_controller == 1) {
 //              bcolor =  ContextCompat.getColor(context,R.color.myBlueConroller );
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myBlueConroller, null);
-                diffInSec = Math.abs(now.getTime() - MainActivity.st.controller_server.Last_work.getTime())/1000;
                 if(MainActivity.st.controller_server.work && diffInSec > 10)
                     str = String.format(Locale.ROOT, "Нет связи с контроллером %d сек %d (%d %d)", diffInSec, raz, sts_controller, sts_server);
-                else
+                else {
                     str = String.format(Locale.ROOT, "Связываемся с контроллером %d (%d %d)", raz, sts_controller, sts_server);
+                    if(diffInSec < 15)
+                        state = 3;
+                    else if(diffInSec < 30)
+                        state = 2;
+                    if(diffInSecOT > 100)
+                        state = 1;
+                }
             } else if(sts_controller == 2) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myGreenConroller, null);
 //                bt_connect_sts.setBackgroundTintList(ColorStateList.valueOf(R.color.myGreenConroller));
                 str = String.format(Locale.ROOT, "Связываемся с контроллером %d (%d %d)", raz, sts_controller, sts_server);
+                if(diffInSec < 15)
+                    state = 3;
+                else if(diffInSec < 30)
+                    state = 2;
+                if(diffInSecOT > 100)
+                    state = 1;
+
 //                   str = String.format(Locale.ROOT, "Связь с контроллером OK %d (%d %d)", raz, sts_controller, sts_server);
             } else if(sts_controller == 3) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myGreenConroller1, null);
                 str = String.format(Locale.ROOT, "Связь с контроллером работает %d (%d %d)", raz, sts_controller, sts_server);
+                if(diffInSecOT < 10)
+                    state = 3;
+                else if(diffInSecOT < 100)
+                    state = 2;
+                else
+                    state = 1;
             } else if(sts_controller == 10) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myWaitConroller, null);
                 str = String.format(Locale.ROOT, "Пауза %d (%d %d)", raz, sts_controller, sts_server);
@@ -1710,6 +1754,16 @@ public class SmartTherm {
             }
             //ConectStatus_txt.setBackgroundTintList(ColorStateList.valueOf(ResourcesCompat.getColor(getResources(), R.color.myGreenConroller, null)));
         } else if(sts_server > 0) {
+            diffInSecOT = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime()) / 1000;
+            diffInSecController = Math.abs(now.getTime() - MainActivity.st.controller_server.Last_work.getTime()) / 1000;
+            diffInSec = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime()) / 1000;
+            if(diffInSecOT < 30)
+                connection_state_new = 0;
+            else if((diffInSecController < 30) || (diffInSec > 30))
+                connection_state_new = 1;
+            if(diffInSecOT > 120)
+                connection_state_new = 2;
+
             if(info_sts_server == 3)
             {   diffInSec = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime());
                 if(diffInSec > 15000)
@@ -1727,9 +1781,18 @@ public class SmartTherm {
             } else if(info_sts_server == 3) {
                 bcolor = ResourcesCompat.getColor(context.getResources(), R.color.myGreenServer1, null);
                 str = String.format(Locale.ROOT, "Связь с сервером работает %d (%d %d) %d", raz, sts_controller, sts_server, np_server);
+                if(connection_state_new == 0)
+                    state = 3;
+                else if(connection_state_new == 1)
+                    state = 2;
             } else if(info_sts_server == 10) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myWaitConroller, null);
                 str = String.format(Locale.ROOT, "Пауза %d (%d %d)", raz, sts_controller, sts_server);
+                if(connection_state_new == 0)
+                    state = 3;
+                else if(connection_state_new == 1)
+                    state = 2;
+
             } else if(info_sts_server == 11) {
                 bcolor =   ResourcesCompat.getColor(context.getResources(),R.color.myWaitConroller, null);
                 str = String.format(Locale.ROOT, "Host Unknown %s (%d %d)", ServerIpAddress, sts_controller, sts_server);
@@ -1765,7 +1828,10 @@ public class SmartTherm {
         bt_connect_sts.setBackgroundTintList(ColorStateList.valueOf(bcolor));
         bt_connect_sts.setText(str);
         bt_connect_sts.setTextColor(color);
+
+        t_trafficLightCircle.change_colorbutton(state);
         need_update_connect_info_event = 0;
+        connection_state = connection_state_new;
     }
 
 //    public int ActivityesFlag; // флаги активностей. Каждая при onResume() устанавливет флаг, в OnStop сбрасывает

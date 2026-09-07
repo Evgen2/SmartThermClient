@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<color name="CurrentSelect"> #FF0E1F2E</color>
+    <color name="CurrentSelect"> #FF0E1F2E</color>
+    <color name="warning_cell_bg">#3E2723</color>
+    <color name="warning_cell_text">#FFE082</color>
 </resources>
