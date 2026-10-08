@@ -1,4 +1,7 @@
 CHANGES.txt
+1.0.9
+* night theme fix
+* connection state fix
 
 1.0.8
 * Show panel state for ST2

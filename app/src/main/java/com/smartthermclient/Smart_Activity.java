@@ -521,6 +521,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         }
     }
 
+
     //TAB_CONNECT
     void Update_ConnectStatus(int ind)
     {   int id;
@@ -581,19 +582,18 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
 
                 } else {
                     diffInMillies = Math.abs(now.getTime() - OT_work_time);
-
-//            System.out.printf("diffInMillies ms %d\n", diffInMillies);
-                    diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.Last_server_ST_work.getTime());
-                    diffInMillies2 = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime());
-
-                    str += GetDayHourMinSecMc(diffInMillies) +
-                            "\nконтроллер " + GetDayHourMinSecMc(diffInMillies1) +
-                            "\nсервер " + GetDayHourMinSecMc(diffInMillies2);
                     if(diffInMillies > 120000)
                         warningstate = 1;
+                    str += GetDayHourMinSecMc(diffInMillies);
                 }
-            }
 
+//            System.out.printf("diffInMillies ms %d\n", diffInMillies);
+                diffInMillies1 = Math.abs(now.getTime() - MainActivity.st.Last_server_ST_work.getTime());
+                diffInMillies2 = Math.abs(now.getTime() - MainActivity.st.remote_server.Last_work.getTime());
+
+                str += "\nконтроллер " + GetDayHourMinSecMc(diffInMillies1) +
+                       "\nсервер " + GetDayHourMinSecMc(diffInMillies2);
+            }
         }
 /*
         if(MainActivity.st.stsOT == -1)
@@ -608,16 +608,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
 */
         tv.setText(str);
         if(warningstate > 0)
-        {
-// 1. Извлекаем адаптивные цвета предупреждения
-            int bgWarningColor = ResourcesCompat.getColor(SA_context.getResources(), R.color.warning_cell_bg, null);
-
-            int textWarningColor = ResourcesCompat.getColor(SA_context.getResources(), R.color.warning_cell_text, null);
-
-            // 2. Применяем к ячейке
-            tv.setBackgroundColor(bgWarningColor);
-            tv.setTextColor(textWarningColor);
-        }
+            Set_tv_WarningColor(tv);
         UpdateFlag--;
     }
 
@@ -640,28 +631,39 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
     //TAB_STATEOT
     void Update_StateOT(int ind)
     {   int id;
+        int warningstate = 0;
         String str ="";
         id = NparamsIds[ind];
         TextView tv = findViewById(id);
 
-        if(SmartTherm.myboiler.stsOT == -1)
+        if(SmartTherm.myboiler.stsOT == -1) {
             str = "Не инициализирован";
-        else if(MainActivity.st.myboiler.stsOT == -2)
+            warningstate = 1;
+        } else if(MainActivity.st.myboiler.stsOT == -2) {
             str = "нет данных";
-        else if(MainActivity.st.myboiler.stsOT == 0)
+            warningstate = 1;
+        } else if(MainActivity.st.myboiler.stsOT == 0) {
             str = "онлайн";
-        else if(MainActivity.st.myboiler.stsOT == 2) {
+        } else if(MainActivity.st.myboiler.stsOT == 2) {
             Date now = new Date();
             long diffInMillies = Math.abs(now.getTime() - MainActivity.st.myboiler.Last_OT_work.getTime());
-            str = String.format(Locale.ROOT, "Потеря связи с котлом\n%d секунд назад", (int)(diffInMillies / 1000.));
+//          str = String.format(Locale.ROOT, "Потеря связи с котлом\n%d секунд назад", (int)(diffInMillies / 1000.));
+            str = String.format(Locale.ROOT, "Потеря связи с котлом:\n");
+            str += GetDayHourMinSecMc(diffInMillies);
+            if(diffInMillies > 15)
+                warningstate = 1;
         }
 
         tv.setText(str);
+        if(warningstate > 0)
+            Set_tv_WarningColor(tv);
     }
 
     //TAB_STATE_SLAVEOT
     void Update_State_slaveOT(int ind)
     {   int id;
+        int warningstate = 1;
+
         String str ="";
         id = NparamsIds[ind];
         TextView tv = findViewById(id);
@@ -685,6 +687,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
                     else
                         str += "контроллер";
                 }
+                warningstate = 0;
 
                 if((SmartTherm.myboiler.Slave_stsOT & 0x02)  == 0x02)
                 {   str += "\nПотеря связи";
@@ -692,13 +695,16 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
                     long diffInMillies, OT_work_time;
                     OT_work_time = SmartTherm.myboiler.Last_slaveOT_work.getTime();
                     diffInMillies = Math.abs(now.getTime() - OT_work_time);
+                    if(diffInMillies > 15000)
+                        warningstate = 1;
                     str += GetDayHourMinSecMc(diffInMillies);
-
                 }
             }
         }
 
         tv.setText(str);
+        if(warningstate > 0)
+            Set_tv_WarningColor(tv);
     }
 
     //TAB_STATEBOILER
@@ -1024,8 +1030,6 @@ void Update_Relay_sts(int ind)
         editNameDialogFragment.show(fm, "Set TroomTarget");
     }
 
-
-
     public void SA_Set_TdhwSet_toSet(View v) {
    /*  return ib onFinishSetTempDialog */
         Bundle bundle = new Bundle();
@@ -1034,11 +1038,22 @@ void Update_Relay_sts(int ind)
         bundle.putString("edttext", "горячей воды");
         bundle.putFloat("Float", MainActivity.st.myboiler.TdhwSet_toSet);
     // set Fragmentclass Arguments
-    FragmentManager fm = getSupportFragmentManager();
-    SetTemp_DialogFragment editNameDialogFragment = SetTemp_DialogFragment.newInstance("");
+        FragmentManager fm = getSupportFragmentManager();
+        SetTemp_DialogFragment editNameDialogFragment = SetTemp_DialogFragment.newInstance("");
         editNameDialogFragment.setArguments(bundle);
         editNameDialogFragment.show(fm, "Set DHWTarget");
-}
+    }
+
+    public void Set_tv_WarningColor(TextView tv)
+    {
+//  Извлекаем адаптивные цвета предупреждения
+        int bgWarningColor = ResourcesCompat.getColor(SA_context.getResources(), R.color.warning_cell_bg, null);
+        int textWarningColor = ResourcesCompat.getColor(SA_context.getResources(), R.color.warning_cell_text, null);
+// Применяем к ячейке
+        tv.setBackgroundColor(bgWarningColor);
+        tv.setTextColor(textWarningColor);
+    }
+
 
 public void SA_ReturnToMainActivity(View v) {
         needExitInfoTherad = true;
