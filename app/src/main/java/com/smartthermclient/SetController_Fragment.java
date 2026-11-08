@@ -3,6 +3,7 @@ package com.smartthermclient;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 import static com.smartthermclient.MainActivity.st;
+import static com.smartthermclient.SmartUtils.isValidIpOrDomain;
 import static com.smartthermclient.SmartUtils.validateStringIP;
 
 import android.content.DialogInterface;
@@ -155,23 +156,27 @@ public class SetController_Fragment extends DialogFragment {
             public void onClick(View v) {
                 int change = 0;
                 String str;
+                String str1;
 //                showToast("getString(R.string.fr_sc_pos_button)");
 
                 // Return input text back to activity through the implemented listener
-                str = edit_IP_ef.getText().toString();
-                if(validateStringIP(str)) {
+                str1 = edit_IP_ef.getText().toString();
+                str = str1.strip(); //убираем пробелы и пр.
+                if(isValidIpOrDomain(str, true)) {
                     if (!st.boiler[indBoiler].ControllerIpAddress.equals(str)) {
                         st.boiler[indBoiler].ControllerIpAddress = str;
                         change = 3;
                     }
                 }
-                str = edit_Name_ef.getText().toString();
+                str1 = edit_Name_ef.getText().toString();
+                str = str1.strip(); //убираем пробелы и пр.
                 if(!st.boiler[indBoiler].Name.equals(str)) {
                     st.boiler[indBoiler].Name = str;
                     change |= 0x01;
                 }
 
-                str = edit_Model_ef.getText().toString();
+                str1 = edit_Model_ef.getText().toString();
+                str = str1.strip(); //убираем пробелы и пр.
                 if(!st.boiler[indBoiler].Model.equals(str)) {
                     st.boiler[indBoiler].Model = str;
                     change |= 0x01;

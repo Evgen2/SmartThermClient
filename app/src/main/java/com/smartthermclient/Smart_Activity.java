@@ -71,11 +71,13 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
     volatile int UpdateFlag =0; //
     static int SA_ThreadRun = 0;
     private  static Handler hdlr; // = new Handler();
+    private static int ConnectStatus_warningstate_old = -1;
+    private static int StateOT_warning_old = -1;
+    private static int State_slaveOT_warning_old = -1;
     int old_stsOT;
     int old_status_D18b20;
     int OldCapabilitiesFlag = 0;
 
-    static int iswork = 0;
     boolean needExitInfoTherad = false;
 
     @Override
@@ -139,7 +141,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
             new Thread(new Runnable() {
                 public void run()
                 {
-                    long t0, t1, t;
+                    long t0, t1;
                     int sleep_step = 100;
                     int sleep_time = 500; //2000;
                     old_stsOT = MainActivity.st.myboiler.stsOT;
@@ -205,7 +207,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
     void Build_Table()
     {   String str;
         MainActivity.st.need_update_event = 1;
-        AddTableHeadRow("Параметр", wPar, "Состояние", wState, "Настройка",  wEdit, tl);
+        AddTableHeadRow("Параметр", wPar, "Состояние", wState,  tl);
         Nparams = 0;
         AddTableRow(Nparams+1, "Связь",wPar, "0", wState, tl,0);  idParams[Nparams++] = TAB_CONNECT;
         AddTableRow(Nparams+1, "OpenTherm",wPar, "0", wState, tl,0);  idParams[Nparams++] = TAB_STATEOT;
@@ -250,7 +252,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         {   AddTableRow(Nparams+1, "Text,°C"    ,wPar, "0",wState, tl,0);   idParams[Nparams++] = TAB_TOUTSIDE;
         }
         if(SmartTherm.myboiler.MQTT_present || SmartTherm.myboiler.PID_present)
-        {   String str0="";
+        {   String str0;
             if(SmartTherm.myboiler.MQTT_present && SmartTherm.myboiler.PID_present)
                 str0 = "MQTT & PID";
             else if (SmartTherm.myboiler.MQTT_present)
@@ -281,7 +283,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         }
     }
 
-    void AddTableHeadRow(String sPar, float wNumber, String sState, float wName, String sEdit, float wEdit, TableLayout _tl) {
+    void AddTableHeadRow(String sPar, float wNumber, String sState, float wName,  TableLayout _tl) {
         TableRow.LayoutParams lp;
         TableRow tr = new TableRow(this);
         tr.setLayoutParams(new TableRow.LayoutParams(
@@ -303,16 +305,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         tv.setGravity(Gravity.CENTER_HORIZONTAL);
         tv.setTypeface(tv.getTypeface(), Typeface.BOLD);
         tr.addView(tv,1);
-/*
-        tv = new TextView(this);
-        tv.setText(sEdit);
-        lp = new TableRow.LayoutParams(0,TableRow.LayoutParams.WRAP_CONTENT,wEdit);
 
-        tv.setLayoutParams(lp);
-        tv.setGravity(Gravity.CENTER_HORIZONTAL);
-        tv.setTypeface(tv.getTypeface(), Typeface.BOLD);
-        tr.addView(tv,2);
-*/
         tr.setBackgroundColor( 0xffe8e4e4);
         _tl.addView(tr,0);
     }
@@ -347,9 +340,9 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         NparamsIds[ind - 1] = id;
         tr.addView(tv, 1);
     } else {
-        float ts;
         float factor = SA_context.getResources().getDisplayMetrics().density;
 /*
+        float ts;
         EditText ef = new EditText(this);
         lp = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT,wState/2);
         ef.setLayoutParams(lp);
@@ -393,7 +386,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         bt.setCornerRadius(20);
         //bt.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
         bt.setGravity(Gravity.CENTER);
-        ts = bt.getTextSize();
+//        ts = bt.getTextSize();
         bt.setTextSize(12.f);
         //    bt.setMinHeight(12);
 //        bt.setHeight(14);
@@ -529,6 +522,7 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         long diffInMillies1;
         long diffInMillies2;
         int warningstate = 0;
+
         String str ="todo";
         if(Nparams == 0)
             return;
@@ -565,7 +559,6 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
             }
 
         } else if (MainActivity.st.LastMessage_isfrom == 1) { //, 1 - remote server
-            String str0 ="";
             str = "котёл: ";
             if(MainActivity.st.myboiler.stsOT == -2)
             {
@@ -607,8 +600,15 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         }
 */
         tv.setText(str);
-        if(warningstate > 0)
-            Set_tv_WarningColor(tv);
+
+        if(ConnectStatus_warningstate_old != warningstate)
+        {   if(warningstate > 0)
+                Set_tv_WarningColor(tv);
+            else
+                Set_tv_NormalColor(tv);
+        }
+
+        ConnectStatus_warningstate_old = warningstate;
         UpdateFlag--;
     }
 
@@ -655,8 +655,14 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         }
 
         tv.setText(str);
-        if(warningstate > 0)
-            Set_tv_WarningColor(tv);
+        if(StateOT_warning_old != warningstate)
+        {   if(warningstate > 0)
+                Set_tv_WarningColor(tv);
+            else
+                Set_tv_NormalColor(tv);
+        }
+
+        StateOT_warning_old = warningstate;
     }
 
     //TAB_STATE_SLAVEOT
@@ -703,8 +709,15 @@ public class Smart_Activity extends AppCompatActivity  implements SetTemp_Dialog
         }
 
         tv.setText(str);
-        if(warningstate > 0)
+
+        if(State_slaveOT_warning_old != warningstate)
+        {   if(warningstate > 0)
             Set_tv_WarningColor(tv);
+        else
+            Set_tv_NormalColor(tv);
+        }
+
+        State_slaveOT_warning_old = warningstate;
     }
 
     //TAB_STATEBOILER
@@ -1052,6 +1065,27 @@ void Update_Relay_sts(int ind)
 // Применяем к ячейке
         tv.setBackgroundColor(bgWarningColor);
         tv.setTextColor(textWarningColor);
+    }
+
+    public void Set_tv_NormalColor(TextView tv)
+    {
+        android.util.TypedValue typedValue = new android.util.TypedValue();
+
+// Запрашиваем у текущей темы (дневной или ночной) её стандартный цвет фона
+        getTheme().resolveAttribute(android.R.attr.windowBackground, typedValue, true);
+        int themeColor = androidx.core.content.ContextCompat.getColor(this, typedValue.resourceId);
+
+// Устанавливаем этот цвет
+        tv.setBackgroundColor(themeColor);
+
+//  Запрашиваем цвет текста из текущей темы (дневной или ночной)
+        getTheme().resolveAttribute(android.R.attr.textColorPrimary, typedValue, true);
+
+//  Получаем ID этого цвета и преобразуем его в понятный для Android численный цвет (int)
+        int defaultColor = androidx.core.content.ContextCompat.getColor(this, typedValue.resourceId);
+
+// Устанавливаем дефолтный цвет для TextView
+        tv.setTextColor(defaultColor);
     }
 
 

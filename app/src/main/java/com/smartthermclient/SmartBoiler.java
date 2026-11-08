@@ -138,7 +138,8 @@ public class SmartBoiler {
             m(29, "Itho Daalderop"),
             m(33, "Viessmann"),
             m(41, "Italtherm/Radiant"),
-            m(56,	"Baxi Luna Duo-Tec P67=2"),
+            m(56, "Baxi Luna Duo-Tec P67=2"),
+            m(71, "Haier TechLine"),
             m(125, "Kotitonttu"), // Toivo Т24 OK with OpenTherm
             m(131, "Bosch/Nefit converter"), // bosch / nefit EMS to OpenTherm converter
             m(148, "Navien"),

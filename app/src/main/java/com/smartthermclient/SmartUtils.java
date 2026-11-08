@@ -9,6 +9,7 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class SmartUtils {
     String myIPaddr;
@@ -33,7 +34,7 @@ public class SmartUtils {
     {   int rc = 0;
         int netmask;
         long ipTest;
-        long ipMy = 0;
+        long ipMy;
         if(validateStringIP(TestIP) == false) {
             return -1;
         }
@@ -58,6 +59,39 @@ public class SmartUtils {
 
         return ip.matches(PATTERN);
     }
+    /****************************************/
+
+    public static boolean isValidIpOrDomain(String input, boolean onlyIpv4) {
+        if (input == null || input.isBlank()) return false;
+        String s = input.trim();
+
+        // 1. Проверяем IPv4 (структура x.x.x.x)
+        if (s.matches("^(\\d{1,3}\\.){3}\\d{1,3}$")) {
+            String[] parts = s.split("\\.");
+            int first = Integer.parseInt(parts[0]);
+
+            // Блокируем диапазон 127.xxx
+            if (first == 127) return false;
+
+            // Проверяем, что все октеты в пределах 0-255
+            for (String part : parts) {
+                if (Integer.parseInt(part) > 255) return false;
+            }
+            return true;
+        }
+
+        // Если включен режим "только IPv4", дальнейшие проверки (IPv6 и домены) не выполняем
+        if (onlyIpv4) return false;
+
+        // 2. Проверяем IPv6
+        if (s.contains(":")) {
+            return !s.equals("::1") && s.matches("^[0-9a-fA-F:]+$");
+        }
+
+        // 3. Проверяем доменное имя
+        return s.matches("^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,11}$");
+    }
+    /****************************************/
     public void GetMyIPandMask()
     {   mask = 0;
         myIPaddr = getIPAddress(true);
@@ -65,7 +99,6 @@ public class SmartUtils {
 
     public static String getIPAddress(boolean useIPv4) {
         int n;
-        String str;
         InterfaceAddress addressI;
         try {
             List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
@@ -74,7 +107,7 @@ public class SmartUtils {
                 n = 0;
                 for (InetAddress addr : addrs) {
                     if (!addr.isLoopbackAddress()) {
-                        String sAddr = addr.getHostAddress().toUpperCase();
+                        String sAddr = Objects.requireNonNull(addr.getHostAddress()).toUpperCase();
                         boolean isIPv4 = addr instanceof Inet4Address;
                         if (useIPv4) {
                             if (isIPv4) {
@@ -104,7 +137,7 @@ public class SmartUtils {
         g = (color & 0x00ff00)>>8;
         b = color & 0x0000ff;
         l = r + g*2 +b;
-        a = color & 0xff000000;
+        //a = color & 0xff000000;
         if(r > 10) r = 255 - r;
         if(g > 10) g = 255 - g;
         if(b > 10) b = 255 - b;
@@ -130,7 +163,7 @@ public class SmartUtils {
         { id = _id;
           name = _name;
         }
-    };
+    }
     // Вспомогательный метод с коротким именем
     public static OTmember m(int id, String name) {
         return new OTmember(id, name);

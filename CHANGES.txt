@@ -1,4 +1,9 @@
 CHANGES.txt
+1.0.10
+* update for passing the remote server's domain name to the controller
+* update of validation of the controller's IP address
+* connection state display fix
+
 1.0.9
 * night theme fix
 * connection state fix

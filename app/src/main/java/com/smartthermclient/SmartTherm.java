@@ -1385,16 +1385,20 @@ public class SmartTherm {
 
     //MCMD_SET_TCPSERVER
     int SetContoller_Tcpserver() {
-        int l, rc, use;
-        ByteBuffer bb = ByteBuffer.allocate(20);
+        int l, la=0, rc, use;
+        boolean isDomenAddr = false;
+        ByteBuffer bb = ByteBuffer.allocate(120);
         Msg1 ucmd = new Msg1();
         Msg1 outcmd = new Msg1();
         ucmd.cmd = MCMD_SET_TCPSERVER;
         String ServerAddress;
+        String ServerAddressIp;
         InetAddress ipAddress= null;
 
-        if(ServerIpAddress.equals("default"))
-            ServerAddress = Server_default_IpAddress;
+        if(ServerIpAddress.equals("default")) {
+            ServerAddressIp = Server_default_IpAddress;
+            ServerAddress = DefaultServerName;
+        }
         else
             ServerAddress = ServerIpAddress;
         use = 1;
@@ -1402,11 +1406,17 @@ public class SmartTherm {
             try {
                 ipAddress = InetAddress.getByName(ServerAddress); // создаем объект который отображает вышеописанный IP-адрес.
                 System.out.printf("ipAddress %s\n", ipAddress.toString());
-                ServerAddress = ipAddress.getHostAddress();
+                ServerAddressIp = ipAddress.getHostAddress();
+                isDomenAddr = true;
+                la = ServerAddress.length();
+                use += la;
             } catch (UnknownHostException uhe) {
                 uhe.printStackTrace();
                 use = 0;
+                ServerAddressIp = null;
             }
+        } else {
+            ServerAddressIp = ServerAddress;
         }
 //статус 4 int
 //IP 20 char
@@ -1418,11 +1428,17 @@ public class SmartTherm {
         bb.putInt(use);
         System.arraycopy(bb.array(), 0, ucmd.Buf, 0, 4);
         bb.clear();
-        assert ServerAddress != null;
-        byte[] b = ServerAddress.getBytes();
-        l = b.length;
-        if (l > 20) l = 20;
-        System.arraycopy(b, 0, ucmd.Buf, 4, l);
+        if(use > 0 && ServerAddressIp != null)
+        {
+//            assert ServerAddressIp != null;
+            byte[] b = ServerAddressIp.getBytes();
+            l = b.length;
+            if (l > 20) l = 20;
+            System.arraycopy(b, 0, ucmd.Buf, 4, l);
+
+        } else {
+            l = 0;
+        }
 
         bb.order(ByteOrder.LITTLE_ENDIAN);
         bb.putInt(ServerReportTime * 1000);
@@ -1433,8 +1449,14 @@ public class SmartTherm {
         bb.putInt(ServerPort);
         System.arraycopy(bb.array(), 0, ucmd.Buf, 28, 4);
         bb.clear();
-
-        rc = controller_server.SendAndConfirm(ucmd, 32, outcmd, 0);
+        if(isDomenAddr)
+        {   byte[] b = ServerAddress.getBytes();
+            l = b.length;
+            System.arraycopy(b, 0, ucmd.Buf, 32, la);
+            rc = controller_server.SendAndConfirm(ucmd, 32 + la, outcmd, 0);
+        } else {
+            rc = controller_server.SendAndConfirm(ucmd, 32, outcmd, 0);
+        }
 
         return rc;
     }

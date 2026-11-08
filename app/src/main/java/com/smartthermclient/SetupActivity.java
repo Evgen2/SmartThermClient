@@ -2,6 +2,7 @@ package com.smartthermclient;
 
 import static com.smartthermclient.MainActivity.st;
 import static com.smartthermclient.SmartTherm.*;
+import static com.smartthermclient.SmartUtils.isValidIpOrDomain;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -433,15 +434,19 @@ public class SetupActivity extends AppCompatActivity  implements SetController_F
         double vv;
         int iv;
         String str;
+        String str1;
 
         st.myboiler = st.boiler[indCurrentBoiler];
 
         iv = Integer.parseInt(editSetupControllerPort_ef.getText().toString());
         st.ControllerPort = iv;
-        str = (editSetupServerIP_ef.getText().toString());
+        str1 = (editSetupServerIP_ef.getText().toString());
+        str = str1.strip(); //убираем пробелы и пр.
         if(!st.ServerIpAddress.equals(str) )
-        {   st.ServerIpAddress = str;
-            isChange |= 0x03;
+        {   if( str.equals("default")  ||  isValidIpOrDomain(str, false))
+            {   st.ServerIpAddress = str;
+                isChange |= 0x03;
+            }
         }
         iv = Integer.parseInt(editSetupServerPort_ef.getText().toString());
         st.ServerPort = iv;
